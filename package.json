@@ -1,0 +1,11 @@
+{
+  "name": "wrms-cli",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "pg": "*",
+    "kew": "*",
+    "posix-getopt": "*",
+    "underscore": "*"
+  }
+}

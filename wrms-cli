@@ -1,0 +1,180 @@
+#!/usr/bin/env node
+
+var pg      = require('pg'),
+    q       = require('kew'),
+    _       = require('underscore')._,
+    getopt  = require('posix-getopt');
+
+var config = {
+    db: {
+        user: 'wrms_readonly',
+        password: '',
+        database: 'wrms',
+        host: 'db1.db.catalyst.net.nz',
+        port: 5433
+    },
+    wrs: []
+};
+
+var db = null;
+var outstanding = 0;
+var wrs_seen = {};
+
+(function(){
+    var parser = new getopt.BasicParser('h:(host)p:(port)', process.argv);
+    var option = undefined;
+    while ((option = parser.getopt()) !== undefined){
+        switch (option.option){
+            case 'h':
+                config.db.host = option.optarg;
+                break;
+            case 'p':
+                config.db.port = parseInt(option.optarg);
+                if (isNaN(config.db.port)){
+                    die('Invalid database port "' + option.optarg + '"');
+                }
+                break;
+        }
+    }
+    config.wrs = process.argv.slice(parser.optind());
+    if (config.wrs.length < 1){
+        usage();
+    }
+
+    outstanding = config.wrs.length;
+
+    db_connector(config.db)
+        .then(bind(iterate_over_children, 0, null, config.wrs)).fail(die)
+        ;
+})();
+
+function db_connector(cfg){
+    db = new pg.Client(cfg);
+    var p = q.defer();
+    db.connect(p.makeNodeResolver());
+    return p.promise;
+}
+
+function fetch_children(wr){
+    var sql =   'select to_request_id as wr ' +
+                'from request_request ' +
+                'where request_id=' + wr + ' and ' +
+                      'link_type=\'I\' ' +
+                'order by to_request_id';
+    var p = q.defer();
+    db.query(sql, p.makeNodeResolver());
+    return p.promise
+            .then(bind(grab, 'rows')).fail(die)
+            .then(tap('children of ' + wr + '\n\t'))
+            .then(mark(+1))
+            ;
+}
+
+function iterate_over_children(depth, parent_wr, child_wrs){
+    maybe_log('iterate_over_children(' + parent_wr + ') => ' + JSON.stringify(child_wrs));
+    var next = child_wrs.shift();
+    if (!next){
+        if (outstanding < 1){
+            maybe_log('done');
+            process.exit(0);
+        }
+        return child_wrs.length === 0;
+    }
+    next = next.wr || next;
+    if (wrs_seen[next]){
+        return load_child(depth, next)
+                .then(bind(iterate_over_children, depth, parent_wr, child_wrs)).fail(die)
+                ;
+    }
+    return load_child(depth, next)
+            .then(bind(fetch_children, next)).fail(die)
+            .then(bind(iterate_over_children, depth+1, next)).fail(die)
+            .then(bind(iterate_over_children, depth, parent_wr, child_wrs)).fail(die)
+            ;
+}
+
+function load_child(depth, wr){
+    wrs_seen[wr] = wrs_seen[wr] || 0;
+    ++wrs_seen[wr];
+    var sql =   'select r.request_id as wr,r.brief,lc.lookup_desc as status ' +
+                'from request r ' +
+                'left join lookup_code lc on lc.source_table=\'request\' and ' +
+                                            'lc.lookup_code=r.last_status ' +
+                'where r.request_id=' + wr;
+    var p = q.defer();
+    db.query(sql, p.makeNodeResolver());
+    return p.promise
+            .then(bind(grab, 'rows')).fail(die)
+            .then(mark(-1))
+            .then(print_wr(depth))
+            ;
+}
+
+function maybe_log(msg){
+    //console.info(msg);
+}
+
+function tap(msg){
+    return function(obj){
+        maybe_log(msg + JSON.stringify(obj));
+        maybe_log('---');
+        return obj;
+    }
+}
+
+function mark(n){
+    return function(rows){
+        outstanding += n*rows.length;
+        return rows;
+    };
+}
+
+var closed_statuses = ['Finished', 'Cancelled', 'Reviewed', 'Production Ready', 'Testing/Signoff'],
+    new_statuses= ['New Request', 'Allocated'],
+    blocked_statuses= ['Blocked', 'On Hold', 'Quoted', 'Need Info'];
+
+function print_wr(depth){
+    return function(obj){
+        var indent = '';
+        while (depth > 0){
+            indent += '    ';
+            --depth;
+        }
+        var o = obj[0] || obj;
+        var color = {
+            wr: '\033[37;1m',
+            brief: '\033[0m',
+            status: _.contains(closed_statuses, o.status) ? '\033[32m' :
+                    _.contains(new_statuses,    o.status) ? '\033[33m' :
+                    _.contains(blocked_statuses,o.status) ? '\033[36m' : '\033[33m'
+        };
+        if (wrs_seen[o.wr] > 1){
+            color.wr = color.brief = color.status = '\033[30m';
+        }
+        console.log(indent + color.wr + '#' + o.wr + ': ' + color.brief + o.brief + color.status + ' [' + o.status + ']\033[0m');
+        return obj;
+    };
+}
+
+function grab(field, obj){
+    return obj[field];
+}
+
+function bind(fn /*, ...*/){
+    var bound_args = Array.prototype.slice.call(arguments, 1);
+    return function(){
+        var args = bound_args.concat(Array.prototype.slice.call(arguments, 0));
+        return fn.apply(this, args);
+    };
+}
+
+function usage(){
+    die('Usage: wrms-cli [-h <db-host=' + config.db.host + '>] [-p <port=' + config.db.port + '>] <wr...>');
+}
+
+function die(m, r){
+    r = r || 1;
+    console.error(m);
+    process.exit(r);
+}
+
