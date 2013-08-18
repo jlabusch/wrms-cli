@@ -26,10 +26,10 @@ a slightly nonstandard PPA -
 ## Usage
 
 <pre>
-    Usage: wrms-cli [options] <wr...>
+    Usage: wrms-cli [options] &lt;wr...&gt;
         --sort-by [wr|brief|status]
-        --host <db-host=db1.db.catalyst.net.nz>
-        --port <port=5433>
+        --host &lt;db-host=db1.db.catalyst.net.nz&gt;
+        --port &lt;port=5433&gt;
 </pre>
 
 The default sort order is `status`, which is based on the status code's WRMS sequence number rather than alphabetical order; e.g. 'New Request' comes way before 'Need Info'.
