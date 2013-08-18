@@ -6,7 +6,6 @@ Limited command-line interactions for Catalyst WRMS.
 For now it just dumps the brief+status of a WR and all its descendants.
 
 Unlike the Search page's `childof:` query, this doesn't restrict the results to "direct" descendants - children-of-children are also shown.
-There isn't currently any filtering or sorting to speak of.
 
 ## Installing
 
@@ -23,3 +22,14 @@ a slightly nonstandard PPA -
     sudo apt-get update
     sudo apt-get install nodejs
 </pre>
+
+## Usage
+
+<pre>
+    Usage: wrms-cli [options] <wr...>
+        --sort-by [wr|brief|status]
+        --host <db-host=db1.db.catalyst.net.nz>
+        --port <port=5433>
+</pre>
+
+The default sort order is `status`, which is based on the status code's WRMS sequence number rather than alphabetical order; e.g. 'New Request' comes way before 'Need Info'.

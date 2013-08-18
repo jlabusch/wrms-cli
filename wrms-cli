@@ -5,6 +5,13 @@ var pg      = require('pg'),
     _       = require('underscore')._,
     getopt  = require('posix-getopt');
 
+function usage(){
+    die('Usage: wrms-cli [options] <wr...>' +
+        '\n\t--sort-by [wr|brief|status]' +
+        '\n\t--host <db-host=' + config.db.host + '>' +
+        '\n\t--port <port=' + config.db.port + '>');
+}
+
 var config = {
     db: {
         user: 'wrms_readonly',
@@ -13,6 +20,7 @@ var config = {
         host: 'db1.db.catalyst.net.nz',
         port: 5433
     },
+    sort_by: 'status',
     wrs: []
 };
 
@@ -21,12 +29,19 @@ var outstanding = 0;
 var wrs_seen = {};
 
 (function(){
-    var parser = new getopt.BasicParser('h:(host)p:(port)', process.argv);
+    var parser = new getopt.BasicParser('s:(sort-by)h:(host)p:(port)', process.argv);
     var option = undefined;
     while ((option = parser.getopt()) !== undefined){
         switch (option.option){
             case 'h':
                 config.db.host = option.optarg;
+                break;
+            case 's':
+                if (option.optarg.match(/^(wr|brief|status)$/)){
+                    config.sort_by = option.optarg;
+                }else{
+                    usage();
+                }
                 break;
             case 'p':
                 config.db.port = parseInt(option.optarg);
@@ -56,11 +71,19 @@ function db_connector(cfg){
 }
 
 function fetch_children(wr){
-    var sql =   'select to_request_id as wr ' +
-                'from request_request ' +
-                'where request_id=' + wr + ' and ' +
-                      'link_type=\'I\' ' +
-                'order by to_request_id';
+    var sql =   'select rr.to_request_id as wr, ' +
+                       'r.brief, ' +
+                       'lc.lookup_desc ' +
+                'from request_request rr ' +
+                'join request r on r.request_id=rr.to_request_id ' +
+                'left join lookup_code lc on lc.source_table=\'request\' and ' +
+                                            'lc.source_field=\'status_code\' and ' +
+                                            'lc.lookup_code=r.last_status ' +
+                'where rr.request_id=' + wr + ' and ' +
+                      'rr.link_type=\'I\' ' +
+                'order by ' + (config.sort_by === 'wr'      ? 'rr.to_request_id' :
+                               config.sort_by === 'brief'   ? 'r.brief'
+                                                            : 'lc.lookup_seq,lc.lookup_desc');
     var p = q.defer();
     db.query(sql, p.makeNodeResolver());
     return p.promise
@@ -166,10 +189,6 @@ function bind(fn /*, ...*/){
         var args = bound_args.concat(Array.prototype.slice.call(arguments, 0));
         return fn.apply(this, args);
     };
-}
-
-function usage(){
-    die('Usage: wrms-cli [-h <db-host=' + config.db.host + '>] [-p <port=' + config.db.port + '>] <wr...>');
 }
 
 function die(m, r){
