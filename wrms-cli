@@ -79,13 +79,13 @@ function fetch_children(wr){
                 'left join lookup_code lc on lc.source_table=\'request\' and ' +
                                             'lc.source_field=\'status_code\' and ' +
                                             'lc.lookup_code=r.last_status ' +
-                'where rr.request_id=' + wr + ' and ' +
+                'where rr.request_id=$1 and ' +
                       'rr.link_type=\'I\' ' +
                 'order by ' + (config.sort_by === 'wr'      ? 'rr.to_request_id' :
                                config.sort_by === 'brief'   ? 'r.brief'
                                                             : 'lc.lookup_seq,lc.lookup_desc');
     var p = q.defer();
-    db.query(sql, p.makeNodeResolver());
+    db.query(sql, [wr], p.makeNodeResolver());
     return p.promise
             .then(bind(grab, 'rows')).fail(die)
             .then(tap('children of ' + wr + '\n\t'))
@@ -123,9 +123,9 @@ function load_child(depth, wr){
                 'from request r ' +
                 'left join lookup_code lc on lc.source_table=\'request\' and ' +
                                             'lc.lookup_code=r.last_status ' +
-                'where r.request_id=' + wr;
+                'where r.request_id=$1';
     var p = q.defer();
-    db.query(sql, p.makeNodeResolver());
+    db.query(sql, [wr], p.makeNodeResolver());
     return p.promise
             .then(bind(grab, 'rows')).fail(die)
             .then(mark(-1))
@@ -189,6 +189,16 @@ function bind(fn /*, ...*/){
         var args = bound_args.concat(Array.prototype.slice.call(arguments, 0));
         return fn.apply(this, args);
     };
+}
+
+function any_values_exist(obj){
+    var result = false;
+    _.each(obj, function(val){
+        if (val){
+            result = true;
+        }
+    });
+    return result;
 }
 
 function die(m, r){
