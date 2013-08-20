@@ -8,6 +8,7 @@ var pg      = require('pg'),
 function usage(){
     die('Usage: wrms-cli [options] <wr...>' +
         '\n\t--sort-by [wr|brief|status]' +
+        '\n\t--allocated-to <user>' +
         '\n\t--host <db-host=' + config.db.host + '>' +
         '\n\t--port <port=' + config.db.port + '>');
 }
@@ -21,6 +22,7 @@ var config = {
         port: 5433
     },
     sort_by: 'status',
+    allocated_to: null,
     wrs: []
 };
 
@@ -29,10 +31,13 @@ var outstanding = 0;
 var wrs_seen = {};
 
 (function(){
-    var parser = new getopt.BasicParser('s:(sort-by)h:(host)p:(port)', process.argv);
+    var parser = new getopt.BasicParser('a:(allocated-to)s:(sort-by)h:(host)p:(port)', process.argv);
     var option = undefined;
     while ((option = parser.getopt()) !== undefined){
         switch (option.option){
+            case 'a':
+                config.allocated_to = option.optarg;
+                break;
             case 'h':
                 config.db.host = option.optarg;
                 break;
@@ -119,8 +124,13 @@ function iterate_over_children(depth, parent_wr, child_wrs){
 function load_child(depth, wr){
     wrs_seen[wr] = wrs_seen[wr] || 0;
     ++wrs_seen[wr];
-    var sql =   'select r.request_id as wr,r.brief,lc.lookup_desc as status ' +
+    var sql =   'select r.request_id as wr,' +
+                       'r.brief,' +
+                       'lc.lookup_desc as status,' +
+                       '(select usr.fullname from usr where usr.user_no=rall.allocated_to_id) as fullname' +
+                       ' ' +
                 'from request r ' +
+                'left join request_allocated rall on rall.request_id=r.request_id ' +
                 'left join lookup_code lc on lc.source_table=\'request\' and ' +
                                             'lc.lookup_code=r.last_status ' +
                 'where r.request_id=$1';
@@ -163,7 +173,19 @@ function print_wr(depth){
             indent += '    ';
             --depth;
         }
-        var o = obj[0] || obj;
+        var o = obj;
+        if (obj[0]){
+            o = obj[0];
+            obj.slice(1).forEach(function(r){
+                o.fullname += ', ' + r.fullname;
+            });
+        }
+        if (config.allocated_to){
+            var re = new RegExp(config.allocated_to, "i");
+            if (o.fullname === null || o.fullname.match(re) === null){
+                return obj;
+            }
+        }
         var color = {
             wr: '\033[37;1m',
             brief: '\033[0m',
