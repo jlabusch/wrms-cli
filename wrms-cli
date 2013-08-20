@@ -99,7 +99,6 @@ function fetch_children(wr){
 }
 
 function iterate_over_children(depth, parent_wr, child_wrs){
-    maybe_log('iterate_over_children(' + parent_wr + ') => ' + JSON.stringify(child_wrs));
     var next = child_wrs.shift();
     if (!next){
         if (outstanding < 1){
@@ -157,7 +156,11 @@ function tap(msg){
 
 function mark(n){
     return function(rows){
-        outstanding += n*rows.length;
+        // This is less pretty now.
+        // outstanding++ happens when we fetch_children. We can rely on one row per child.
+        // outstanding-- happens when we load_child, but unfortunately we get one row for
+        // each person assigned to the WR! That's inconsistent.
+        outstanding += (n > 0 ? n*rows.length : n);
         return rows;
     };
 }
