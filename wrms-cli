@@ -6,11 +6,15 @@ var pg      = require('pg'),
     getopt  = require('posix-getopt');
 
 function usage(){
-    die('Usage: wrms-cli [options] <wr...>' +
-        '\n\t--sort-by [wr|brief|status]' +
+    die(
+        'Usage: wrms-cli [options] <wr...>' +
         '\n\t--allocated-to <user> (Filter by case-insensitive substring regex, e.g. "james|sam")' +
         '\n\t--host <db-host=' + config.db.host + '>' +
-        '\n\t--port <port=' + config.db.port + '>');
+        '\n\t--output [pretty|csv]' +
+        '\n\t--port <port=' + config.db.port + '>' +
+        '\n\t--sort-by [wr|brief|status]' +
+        ''
+    );
 }
 
 var config = {
@@ -23,6 +27,7 @@ var config = {
     },
     sort_by: 'status',
     allocated_to: null,
+    output: 'pretty',
     wrs: []
 };
 
@@ -31,7 +36,7 @@ var outstanding = 0;
 var wrs_seen = {};
 
 (function(){
-    var parser = new getopt.BasicParser('a:(allocated-to)s:(sort-by)h:(host)p:(port)', process.argv);
+    var parser = new getopt.BasicParser('a:(allocated-to)o:(output)s:(sort-by)h:(host)p:(port)', process.argv);
     var option = undefined;
     while ((option = parser.getopt()) !== undefined){
         switch (option.option){
@@ -44,6 +49,13 @@ var wrs_seen = {};
             case 's':
                 if (option.optarg.match(/^(wr|brief|status)$/)){
                     config.sort_by = option.optarg;
+                }else{
+                    usage();
+                }
+                break;
+            case 'o':
+                if (option.optarg.match(/^(pretty|csv)$/)){
+                    config.output = option.optarg;
                 }else{
                     usage();
                 }
@@ -183,23 +195,37 @@ function print_wr(depth){
                 o.fullname += ', ' + r.fullname;
             });
         }
+        o.fullname = o.fullname || 'Nobody';
         if (config.allocated_to){
             var re = new RegExp(config.allocated_to, "i");
-            if (o.fullname === null || o.fullname.match(re) === null){
+            if (o.fullname.match(re) === null){
                 return obj;
             }
         }
-        var color = {
-            wr: '\033[37;1m',
-            brief: '\033[0m',
-            status: _.contains(closed_statuses, o.status) ? '\033[32m' :
-                    _.contains(new_statuses,    o.status) ? '\033[33m' :
-                    _.contains(blocked_statuses,o.status) ? '\033[36m' : '\033[33m'
-        };
-        if (wrs_seen[o.wr] > 1){
-            color.wr = color.brief = color.status = '\033[30m';
+        if (config.output === 'pretty'){
+            var color = {
+                wr: '\033[37;1m',
+                brief: '\033[0m',
+                status: _.contains(closed_statuses, o.status) ? '\033[32m' :
+                        _.contains(new_statuses,    o.status) ? '\033[33m' :
+                        _.contains(blocked_statuses,o.status) ? '\033[36m' : '\033[33m'
+            };
+            if (wrs_seen[o.wr] > 1){
+                color.wr = color.brief = color.status = '\033[30m';
+            }
+            console.log(
+                indent +
+                color.wr + '#' + o.wr + ': ' +
+                color.brief + o.brief +
+                color.status + ' [' + o.status + ']\033[0m'
+            );
+        }else{
+            if (wrs_seen[o.wr] > 1){
+                // Don't print it
+            }else{
+                console.log([o.wr, o.brief, o.status, o.fullname].join(','));
+            }
         }
-        console.log(indent + color.wr + '#' + o.wr + ': ' + color.brief + o.brief + color.status + ' [' + o.status + ']\033[0m');
         return obj;
     };
 }
