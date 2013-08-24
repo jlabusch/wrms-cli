@@ -8,7 +8,7 @@ var pg      = require('pg'),
 function usage(){
     die('Usage: wrms-cli [options] <wr...>' +
         '\n\t--sort-by [wr|brief|status]' +
-        '\n\t--allocated-to <user>' +
+        '\n\t--allocated-to <user> (Filter by case-insensitive substring regex, e.g. "james|sam")' +
         '\n\t--host <db-host=' + config.db.host + '>' +
         '\n\t--port <port=' + config.db.port + '>');
 }
