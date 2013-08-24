@@ -3,6 +3,7 @@
 var pg      = require('pg'),
     q       = require('kew'),
     _       = require('underscore')._,
+    assert  = require('assert'),
     getopt  = require('posix-getopt');
 
 function usage(){
@@ -33,7 +34,6 @@ var config = {
 
 var db = null;
 var outstanding = 0;
-var wrs_seen = {};
 
 (function(){
     var parser = new getopt.BasicParser('a:(allocated-to)o:(output)s:(sort-by)h:(host)p:(port)', process.argv);
@@ -105,7 +105,6 @@ function fetch_children(wr){
     db.query(sql, [wr], p.makeNodeResolver());
     return p.promise
             .then(bind(grab, 'rows')).fail(die)
-            .then(tap('children of ' + wr + '\n\t'))
             .then(mark(+1))
             ;
 }
@@ -120,7 +119,7 @@ function iterate_over_children(depth, parent_wr, child_wrs){
         return child_wrs.length === 0;
     }
     next = next.wr || next;
-    if (wrs_seen[next]){
+    if (wr_cache[next]){
         return load_child(depth, next)
                 .then(bind(iterate_over_children, depth, parent_wr, child_wrs)).fail(die)
                 ;
@@ -132,26 +131,49 @@ function iterate_over_children(depth, parent_wr, child_wrs){
             ;
 }
 
+var wr_cache = {};
+
+function cache(wr){
+    wr_cache[wr.wr] = wr;
+    return wr;
+}
+
+function squash(rows){
+    assert(rows.length !== undefined);
+    var r = rows[0];
+    r.fullname = [r.fullname || 'Nobody'];
+    rows.slice(1).forEach(function(i){
+        r.fullname.push(i.fullname);
+    });
+    return r;
+}
+
 function load_child(depth, wr){
-    wrs_seen[wr] = wrs_seen[wr] || 0;
-    ++wrs_seen[wr];
-    var sql =   'select r.request_id as wr,' +
-                       'r.brief,' +
-                       'lc.lookup_desc as status,' +
-                       '(select usr.fullname from usr where usr.user_no=rall.allocated_to_id) as fullname' +
-                       ' ' +
-                'from request r ' +
-                'left join request_allocated rall on rall.request_id=r.request_id ' +
-                'left join lookup_code lc on lc.source_table=\'request\' and ' +
-                                            'lc.lookup_code=r.last_status ' +
-                'where r.request_id=$1';
-    var p = q.defer();
-    db.query(sql, [wr], p.makeNodeResolver());
-    return p.promise
-            .then(bind(grab, 'rows')).fail(die)
-            .then(mark(-1))
-            .then(print_wr(depth))
-            ;
+    return (function(){
+        if (wr_cache[wr]){
+            wr_cache[wr].from_cache = true;
+            return q.resolve(wr_cache[wr]);
+        }else{
+            var sql =   'select r.request_id as wr,' +
+                               'r.brief,' +
+                               'lc.lookup_desc as status,' +
+                               '(select usr.fullname from usr where usr.user_no=rall.allocated_to_id) as fullname' +
+                               ' ' +
+                        'from request r ' +
+                        'left join request_allocated rall on rall.request_id=r.request_id ' +
+                        'left join lookup_code lc on lc.source_table=\'request\' and ' +
+                                                    'lc.lookup_code=r.last_status ' +
+                        'where r.request_id=$1';
+            var p = q.defer();
+            db.query(sql, [wr], p.makeNodeResolver());
+            return p.promise
+                    .then(bind(grab, 'rows')).fail(die)
+                    .then(squash)
+                    .then(cache);
+        }
+    })().then(mark(-1))
+        .then(print_wr(depth))
+        ;
 }
 
 function maybe_log(msg){
@@ -182,24 +204,24 @@ var closed_statuses = ['Finished', 'Cancelled', 'Reviewed', 'Production Ready', 
     blocked_statuses= ['Blocked', 'On Hold', 'Quoted', 'Need Info'];
 
 function print_wr(depth){
-    return function(obj){
+    function any_match(re, list){
+        var m = false;
+        _.each(list, function(i){
+            if (i.match(re)){
+                m = true;
+            }
+        });
+        return m;
+    }
+    return function(o){
         var indent = '';
         while (depth > 0){
             indent += '    ';
             --depth;
         }
-        var o = obj;
-        if (obj[0]){
-            o = obj[0];
-            obj.slice(1).forEach(function(r){
-                o.fullname += ', ' + r.fullname;
-            });
-        }
-        o.fullname = o.fullname || 'Nobody';
         if (config.allocated_to){
-            var re = new RegExp(config.allocated_to, "i");
-            if (o.fullname.match(re) === null){
-                return obj;
+            if (!any_match(new RegExp(config.allocated_to, "i"), o.fullname)){
+                return o;
             }
         }
         if (config.output === 'pretty'){
@@ -210,7 +232,7 @@ function print_wr(depth){
                         _.contains(new_statuses,    o.status) ? '\033[33m' :
                         _.contains(blocked_statuses,o.status) ? '\033[36m' : '\033[33m'
             };
-            if (wrs_seen[o.wr] > 1){
+            if (wr_cache[o.wr].from_cache){
                 color.wr = color.brief = color.status = '\033[30m';
             }
             console.log(
@@ -220,13 +242,13 @@ function print_wr(depth){
                 color.status + ' [' + o.status + ']\033[0m'
             );
         }else{
-            if (wrs_seen[o.wr] > 1){
+            if (wr_cache[o.wr].from_cache){
                 // Don't print it
             }else{
-                console.log([o.wr, o.brief, o.status, o.fullname].join(','));
+                console.log([o.wr, o.brief, o.status, o.fullname.join('/')].join(','));
             }
         }
-        return obj;
+        return o;
     };
 }
 
