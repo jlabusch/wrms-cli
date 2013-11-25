@@ -10,10 +10,11 @@ function usage(){
     die(
         'Usage: wrms-cli [options] <wr...>' +
         '\n\t--allocated-to <user> (Filter by case-insensitive substring regex, e.g. "james|sam")' +
-        '\n\t--host <db-host=' + config.db.host + '>' +
-        '\n\t--output [pretty|csv]' +
-        '\n\t--port <port=' + config.db.port + '>' +
-        '\n\t--sort-by [wr|brief|status]' +
+        '\n\t--host <db-host=\033[1m' + config.db.host + '\033[0m>' +
+        '\n\t--format [\033[1mpretty\033[0m|csv]' +
+        '\n\t--verbose' +
+        '\n\t--port <port=\033[1m' + config.db.port + '\033[0m>' +
+        '\n\t--sort-by [wr|brief|\033[1mstatus\033[0m]' +
         ''
     );
 }
@@ -29,6 +30,7 @@ var config = {
     sort_by: 'status',
     allocated_to: null,
     output: 'pretty',
+    verbose: false,
     wrs: []
 };
 
@@ -36,7 +38,7 @@ var db = null;
 var outstanding = 0;
 
 (function(){
-    var parser = new getopt.BasicParser('a:(allocated-to)o:(output)s:(sort-by)h:(host)p:(port)', process.argv);
+    var parser = new getopt.BasicParser('v(verbose)a:(allocated-to)f:(format)s:(sort-by)h:(host)p:(port)', process.argv);
     var option = undefined;
     while ((option = parser.getopt()) !== undefined){
         switch (option.option){
@@ -53,7 +55,7 @@ var outstanding = 0;
                     usage();
                 }
                 break;
-            case 'o':
+            case 'f':
                 if (option.optarg.match(/^(pretty|csv)$/)){
                     config.output = option.optarg;
                 }else{
@@ -65,6 +67,9 @@ var outstanding = 0;
                 if (isNaN(config.db.port)){
                     die('Invalid database port "' + option.optarg + '"');
                 }
+                break;
+            case 'v':
+                config.verbose = true;
                 break;
         }
     }
@@ -169,15 +174,42 @@ function load_child(depth, wr){
             return p.promise
                     .then(bind(grab, 'rows')).fail(die)
                     .then(squash)
+                    .then(bind(load_child_quotes, wr))
+                    .then(bind(load_child_timesheets, wr))
+                    //.then(tap('result of timesheets: '))
                     .then(cache);
+                    ;
         }
     })().then(mark(-1))
         .then(print_wr(depth))
         ;
 }
 
+function load_child_quotes(wr, obj){
+    var sql = 'select sum(quote_amount),quote_units,bool(approved_by_id) as approved ' +
+              'from request_quote ' +
+              'where request_id=$1 ' +
+              'group by quote_units,approved';
+    var p = q.defer();
+    db.query(sql, [wr], p.makeNodeResolver());
+    return p.promise
+            .then(bind(function(n, o, rows){ o.quotes = rows.rows; return o; }, wr, obj));
+}
+
+function load_child_timesheets(wr, obj){
+    function grab_hours(n, o, rows){
+        o.timesheet_hours = rows.rows.length ? rows.rows[0].sum : 0;
+        return o;
+    }
+    var sql = "select sum(hours) from request_activity where request_id=$1 and source='timesheet'";
+    var p = q.defer();
+    db.query(sql, [wr], p.makeNodeResolver());
+    return p.promise
+            .then(bind(grab_hours, wr, obj));
+}
+
 function maybe_log(msg){
-    //console.info(msg);
+    console.info(msg);
 }
 
 function tap(msg){
@@ -241,11 +273,31 @@ function print_wr(depth){
                 color.brief + o.brief +
                 color.status + ' [' + o.status + ']\033[0m'
             );
+            if (config.verbose && !wr_cache[o.wr].from_cache){
+                console.log(
+                    indent +
+                    '\033[30m' +
+                    '             ' + 'Allocated to ' + o.fullname.join('/')
+                );
+                var quote_str = _.map(o.quotes, function(q){ return q.sum + ' ' + q.quote_units + ' (' + (q.approved ? 'approved' : 'unapproved') + ')';}).join(',');
+                quote_str = quote_str || 'nothing';
+                console.log(
+                    indent +
+                    '\033[30m' +
+                    '             ' + 'Worked ' + o.timesheet_hours + 'h, quoted ' + quote_str +
+                    '\033[0m'
+                );
+            }
         }else{
             if (wr_cache[o.wr].from_cache){
                 // Don't print it
             }else{
-                console.log([o.wr, o.brief, o.status, o.fullname.join('/')].join(','));
+                var quote_str = _.map(o.quotes, function(q){
+                    return q.sum +
+                           (q.quote_units[0] == 'd' ? '$' : q.quote_units[0]) +
+                           ' (' + (q.approved ? 'app.' : 'unapp.') + ')';
+                }).join('/');
+                console.log([o.wr, o.brief, o.status, o.fullname.join('/'), o.timesheet_hours, quote_str].join(','));
             }
         }
         return o;
