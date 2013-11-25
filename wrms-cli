@@ -12,9 +12,9 @@ function usage(){
         '\n\t--allocated-to <user> (Filter by case-insensitive substring regex, e.g. "james|sam")' +
         '\n\t--host <db-host=\033[1m' + config.db.host + '\033[0m>' +
         '\n\t--format [\033[1mpretty\033[0m|csv]' +
-        '\n\t--verbose' +
         '\n\t--port <port=\033[1m' + config.db.port + '\033[0m>' +
         '\n\t--sort-by [wr|brief|\033[1mstatus\033[0m]' +
+        '\n\t--verbose' +
         ''
     );
 }
