@@ -80,6 +80,10 @@ var outstanding = 0;
 
     outstanding = config.wrs.length;
 
+    if (config.output === 'csv'){
+        console.log('WR#,Brief,Status,Allocated to,Timesheet hours,Quoted ($ approved),Quoted ($ unapproved),Quoted (hours approved),Quoted (hours unapproved)');
+    }
+
     db_connector(config.db)
         .then(bind(iterate_over_children, 0, null, config.wrs)).fail(die)
         ;
@@ -118,7 +122,6 @@ function iterate_over_children(depth, parent_wr, child_wrs){
     var next = child_wrs.shift();
     if (!next){
         if (outstanding < 1){
-            maybe_log('done');
             process.exit(0);
         }
         return child_wrs.length === 0;
@@ -231,7 +234,7 @@ function mark(n){
     };
 }
 
-var closed_statuses = ['Finished', 'Cancelled', 'Reviewed', 'Production Ready', 'Testing/Signoff'],
+var closed_statuses = ['Finished', 'Cancelled', 'Reviewed', 'Production Ready', 'Testing/Signoff', 'QA Approved'],
     new_statuses= ['New Request', 'Allocated'],
     blocked_statuses= ['Blocked', 'On Hold', 'Quoted', 'Need Info'];
 
@@ -292,12 +295,36 @@ function print_wr(depth){
             if (wr_cache[o.wr].from_cache){
                 // Don't print it
             }else{
-                var quote_str = _.map(o.quotes, function(q){
-                    return q.sum +
-                           (q.quote_units[0] == 'd' ? '$' : q.quote_units[0]) +
-                           ' (' + (q.approved ? 'app.' : 'unapp.') + ')';
-                }).join('/');
-                console.log([o.wr, o.brief, o.status, o.fullname.join('/'), o.timesheet_hours, quote_str].join(','));
+                var quotes = {
+                    u: {
+                        dollars: 0,
+                        hours: 0
+                    },
+                    a: {
+                        dollars: 0,
+                        hours: 0
+                    }
+                };
+                _.each(o.quotes, function(q){
+                    var type = q.approved ? quotes.a : quotes.u;
+                    switch (q.quote_units){
+                        case 'aud':
+                        case 'dollars':
+                        case 'usd':
+                        case 'pounds':
+                        case 'amount':
+                            type.dollars += q.sum;
+                            break;
+                        case 'days':
+                            type.hours += q.sum*8;
+                            break;
+                        case 'hours':
+                            type.hours += q.sum;
+                            break;
+                    }
+                });
+                var b = o.brief.replace(/,/g, '.');
+                console.log([o.wr, b, o.status, o.fullname.join('/'), o.timesheet_hours, quotes.a.dollars, quotes.u.dollars, quotes.a.hours, quotes.u.hours].join(','));
             }
         }
         return o;
