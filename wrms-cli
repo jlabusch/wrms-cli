@@ -277,17 +277,12 @@ function print_wr(depth){
                 color.status + ' [' + o.status + ']\033[0m'
             );
             if (config.verbose && !wr_cache[o.wr].from_cache){
-                console.log(
-                    indent +
-                    '\033[30m' +
-                    '             ' + 'Allocated to ' + o.fullname.join('/')
-                );
                 var quote_str = _.map(o.quotes, function(q){ return q.sum + ' ' + q.quote_units + ' (' + (q.approved ? 'approved' : 'unapproved') + ')';}).join(',');
                 quote_str = quote_str || 'nothing';
                 console.log(
-                    indent +
-                    '\033[30m' +
-                    '             ' + 'Worked ' + o.timesheet_hours + 'h, quoted ' + quote_str +
+                    indent + '\033[30m' + '             ' +
+                    'Allocated to ' + o.fullname.join('/') +
+                    ', worked ' + o.timesheet_hours + 'h, quoted ' + quote_str +
                     '\033[0m'
                 );
             }
