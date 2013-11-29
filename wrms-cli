@@ -201,7 +201,10 @@ function load_child_quotes(wr, obj){
 
 function load_child_timesheets(wr, obj){
     function grab_hours(n, o, rows){
-        o.timesheet_hours = rows.rows.length ? rows.rows[0].sum : 0;
+        o.timesheet_hours = 0;
+        if (rows.rows.length > 0 && rows.rows[0].sum){
+            o.timesheet_hours = rows.rows[0].sum;
+        }
         return o;
     }
     var sql = "select sum(hours) from request_activity where request_id=$1 and source='timesheet'";
