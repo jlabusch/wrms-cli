@@ -81,7 +81,7 @@ var outstanding = 0;
     outstanding = config.wrs.length;
 
     if (config.output === 'csv'){
-        console.log('WR#,Brief,Status,Allocated to,Timesheet hours,Quoted ($ approved),Quoted ($ unapproved),Quoted (hours approved),Quoted (hours unapproved)');
+        console.log('WR#,Brief,Status,Allocated to,Timesheet hours,Quoted ($ approved),Quoted ($ unapproved),Quoted (hours approved),Quoted (hours unapproved),' + (config.verbose ? 'Detail' : ''));
     }
 
     db_connector(config.db)
@@ -165,8 +165,8 @@ function load_child(depth, wr){
             var sql =   'select r.request_id as wr,' +
                                'r.brief,' +
                                'lc.lookup_desc as status,' +
-                               '(select usr.fullname from usr where usr.user_no=rall.allocated_to_id) as fullname' +
-                               ' ' +
+                               '(select usr.fullname from usr where usr.user_no=rall.allocated_to_id) as fullname, ' +
+                               'r.detailed ' +
                         'from request r ' +
                         'left join request_allocated rall on rall.request_id=r.request_id ' +
                         'left join lookup_code lc on lc.source_table=\'request\' and ' +
@@ -322,7 +322,8 @@ function print_wr(depth){
                     }
                 });
                 var b = o.brief.replace(/,/g, '.');
-                console.log([o.wr, b, o.status, o.fullname.join('/'), o.timesheet_hours, quotes.a.dollars, quotes.u.dollars, quotes.a.hours, quotes.u.hours].join(','));
+                var d = config.verbose ? o.detailed.replace(/,/g, '.').replace(/\n/g, '') : '';
+                console.log([o.wr, b, o.status, o.fullname.join('/'), o.timesheet_hours, quotes.a.dollars, quotes.u.dollars, quotes.a.hours, quotes.u.hours, d].join(','));
             }
         }
         return o;
