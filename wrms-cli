@@ -81,7 +81,7 @@ var outstanding = 0;
     outstanding = config.wrs.length;
 
     if (config.output === 'csv'){
-        console.log('WR#,Brief,Status,Allocated to,Timesheet hours,Quoted ($ approved),Quoted ($ unapproved),Quoted (hours approved),Quoted (hours unapproved),' + (config.verbose ? 'Detail' : ''));
+        console.log('WR#,Brief,Status,Allocated to,Timesheet hours,Quoted ($ approved),Quoted ($ unapproved),Quoted (hours approved),Quoted (hours unapproved),Detail,Depth');
     }
 
     db_connector(config.db)
@@ -253,6 +253,7 @@ function print_wr(depth){
     }
     return function(o){
         var indent = '';
+        var origdepth = depth;
         while (depth > 0){
             indent += '    ';
             --depth;
@@ -323,7 +324,7 @@ function print_wr(depth){
                 });
                 var b = o.brief.replace(/,/g, '.');
                 var d = config.verbose ? o.detailed.replace(/,/g, '.').replace(/\n/g, '') : '';
-                console.log([o.wr, b, o.status, o.fullname.join('/'), o.timesheet_hours, quotes.a.dollars, quotes.u.dollars, quotes.a.hours, quotes.u.hours, d].join(','));
+                console.log([o.wr, b, o.status, o.fullname.join('/'), o.timesheet_hours, quotes.a.dollars, quotes.u.dollars, quotes.a.hours, quotes.u.hours, d, origdepth].join(','));
             }
         }
         return o;
