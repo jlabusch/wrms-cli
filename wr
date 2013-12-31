@@ -35,7 +35,6 @@ var config = {
 };
 
 var db = null;
-var outstanding = 0;
 
 (function(){
     var parser = new getopt.BasicParser('v(verbose)a:(allocated-to)f:(format)s:(sort-by)h:(host)p:(port)', process.argv);
@@ -78,10 +77,8 @@ var outstanding = 0;
         usage();
     }
 
-    outstanding = config.wrs.length;
-
     db_connector(config.db)
-        .then(bind(iterate_over_children, 0, null, config.wrs)).fail(die)
+        .then(bind(iterate_over_children, 0, null, config.wrs, function(){process.exit(0);})).fail(die)
         ;
 })();
 
@@ -110,28 +107,28 @@ function fetch_children(wr){
     db.query(sql, [wr], p.makeNodeResolver());
     return p.promise
             .then(bind(grab, 'rows')).fail(die)
-            .then(mark(+1))
             ;
 }
 
-function iterate_over_children(depth, parent_wr, child_wrs){
+function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
+    if (typeof(on_completion) !== 'function'){
+        on_completion = function(){};
+    }
     var next = child_wrs.shift();
     if (!next){
-        if (outstanding < 1){
-            process.exit(0);
-        }
-        return child_wrs.length === 0;
+        on_completion();
+        return;
     }
     next = next.wr || next;
     if (wr_cache[next]){
         return load_child(depth, next)
-                .then(bind(iterate_over_children, depth, parent_wr, child_wrs)).fail(die)
+                .then(bind(iterate_over_children, depth, parent_wr, child_wrs, on_completion)).fail(die)
                 ;
     }
     return load_child(depth, next)
             .then(bind(fetch_children, next)).fail(die)
             .then(bind(iterate_over_children, depth+1, next)).fail(die)
-            .then(bind(iterate_over_children, depth, parent_wr, child_wrs)).fail(die)
+            .then(bind(iterate_over_children, depth, parent_wr, child_wrs, on_completion)).fail(die)
             ;
 }
 
@@ -181,8 +178,7 @@ function load_child(depth, wr){
                     .then(cache);
                     ;
         }
-    })().then(mark(-1))
-        .then(print_wr(depth))
+    })().then(print_wr(depth))
         ;
 }
 
@@ -222,17 +218,6 @@ function tap(msg){
         maybe_log('---');
         return obj;
     }
-}
-
-function mark(n){
-    return function(rows){
-        // This is less pretty now.
-        // outstanding++ happens when we fetch_children. We can rely on one row per child.
-        // outstanding-- happens when we load_child, but unfortunately we get one row for
-        // each person assigned to the WR! That's inconsistent.
-        outstanding += (n > 0 ? n*rows.length : n);
-        return rows;
-    };
 }
 
 var closed_statuses = ['Finished', 'Cancelled', 'Reviewed', 'Production Ready', 'Testing/Signoff', 'QA Approved'],
