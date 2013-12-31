@@ -9,7 +9,7 @@ var pg      = require('pg'),
 function usage(){
     die(
         'Usage: wrms-cli [options] <wr...>' +
-        '\n\t--allocated-to <user> (Filter by case-insensitive substring regex, e.g. "james|sam")' +
+        '\n\t--allocated-to <user> (Filter by case-insensitive regex, e.g. "james|sam")' +
         '\n\t--host <db-host=\033[1m' + config.db.host + '\033[0m>' +
         '\n\t--format [\033[1mpretty\033[0m|csv]' +
         '\n\t--port <port=\033[1m' + config.db.port + '\033[0m>' +
@@ -77,8 +77,15 @@ var db = null;
         usage();
     }
 
+    var after = function(){
+        wr_tree.forEach(function(n){
+            print_wr(n[1])(wr_cache[n[0]]);
+        });
+        process.exit(0);
+    };
+
     db_connector(config.db)
-        .then(bind(iterate_over_children, 0, null, config.wrs, function(){process.exit(0);})).fail(die)
+        .then(bind(iterate_over_children, 0, null, config.wrs, after)).fail(die)
         ;
 })();
 
@@ -132,11 +139,19 @@ function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
             ;
 }
 
-var wr_cache = {};
+var wr_cache = {}; // WR objects keyed on request_id
 
 function cache(wr){
     wr_cache[wr.wr] = wr;
     return wr;
+}
+
+var wr_tree = []; // A flattened tree of request_id/depth pairs
+
+function add_tree_node(depth){
+    return function(wr){
+        wr_tree.push([wr.wr, depth]);
+    };
 }
 
 function squash(rows){
@@ -178,7 +193,7 @@ function load_child(depth, wr){
                     .then(cache);
                     ;
         }
-    })().then(print_wr(depth))
+    })().then(add_tree_node(depth))
         ;
 }
 
