@@ -80,10 +80,6 @@ var outstanding = 0;
 
     outstanding = config.wrs.length;
 
-    if (config.output === 'csv'){
-        console.log('WR#,Brief,Status,Allocated to,Timesheet hours,Quoted ($ approved),Quoted ($ unapproved),Quoted (hours approved),Quoted (hours unapproved),Detail,Due date,Depth');
-    }
-
     db_connector(config.db)
         .then(bind(iterate_over_children, 0, null, config.wrs)).fail(die)
         ;
@@ -243,6 +239,8 @@ var closed_statuses = ['Finished', 'Cancelled', 'Reviewed', 'Production Ready', 
     new_statuses= ['New Request', 'Allocated'],
     blocked_statuses= ['Blocked', 'On Hold', 'Quoted', 'Need Info'];
 
+var need_to_print_header = true;
+
 function print_wr(depth){
     function any_match(re, list){
         var m = false;
@@ -254,6 +252,13 @@ function print_wr(depth){
         return m;
     }
     return function(o){
+        if (need_to_print_header){
+            need_to_print_header = false;
+            if (config.output === 'csv'){
+                console.log('WR#,Brief,Status,Allocated to,Timesheet hours,Quoted ($ approved),Quoted ($ unapproved),Quoted (hours approved),Quoted (hours unapproved),Detail,Due date,Depth');
+            }
+        }
+
         var indent = '';
         var origdepth = depth;
         while (depth > 0){
