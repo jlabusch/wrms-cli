@@ -32,8 +32,7 @@ var config = {
     sort_by: 'status',
     allocated_to: null,
     output: 'pretty',
-    verbose: false,
-    wrs: []
+    verbose: false
 };
 
 (function(){
@@ -72,8 +71,8 @@ var config = {
                 break;
         }
     }
-    config.wrs = process.argv.slice(parser.optind());
-    if (config.wrs.length < 1){
+    var wrs = process.argv.slice(parser.optind());
+    if (wrs.length < 1){
         usage();
     }
 
@@ -81,6 +80,6 @@ var config = {
         config: config,
         db: libdb
     });
-    libdb.init().then(bind(wrms_cli.run, config.wrs)).fail(die);
+    libdb.init().then(bind(wrms_cli.run, wrs)).fail(die);
 })();
 
