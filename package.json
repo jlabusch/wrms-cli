@@ -8,6 +8,7 @@
     "request": ">= 2.27.0",
     "posix-getopt": ">= 1.0.0",
     "should": ">= 1.2.2",
+    "moment": ">= 2.5.0",
     "underscore": ">= 1.5.1"
   }
 }

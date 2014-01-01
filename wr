@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 
+// TODO: Yank out per-WR queries (like timesheets) into post processing
+// TODO: Add timesheet-centric output variant
+
 var pg      = require('pg'),
     q       = require('kew'),
     _       = require('underscore')._,
     assert  = require('assert'),
+    moment  = require('moment'),
     getopt  = require('posix-getopt');
 
 function usage(){
@@ -78,10 +82,68 @@ var db = null;
     }
 
     var after = function(){
-        wr_tree.forEach(function(n){
-            print_wr(n[1])(wr_cache[n[0]]);
-        });
-        process.exit(0);
+        function fetch_timesheets(){
+            var p = q.defer();
+            var sql =   "select ra.request_id,ra.date,u.fullname,SUM(ra.hours) " +
+                        "from request_activity ra, usr u " +
+                        "where ra.source='timesheet' and " +
+                        "      u.user_no=ra.worker_id and " +
+                        "      request_id in (" + _.keys(wr_cache).join(',') + ") " +
+                        "group by ra.request_id,ra.date,u.fullname " +
+                        "order by ra.request_id,ra.date asc";
+            db.query(sql, p.makeNodeResolver());
+            return p.promise
+                    .then(function(result){
+                        print_wrs(merge_timesheets(squash_timesheets(result)));
+                    })
+                    .fail(die);
+        };
+        // TODO: Maybe need totals by month and by week? How carve up month border in week-view?
+        function is_same_date(a, b){
+            return true;
+            //var as = ('' + a).substr(0, 10);
+            //var bs = ('' + b).substr(0, 10);
+            //return as === bs;
+        }
+        function squash_timesheets(ts){
+            var result = [];
+            var obj = null;
+            _.each(ts.rows, function(t){
+                if (!obj || t.request_id !== obj.request_id || !is_same_date(t.date, obj.date)){
+                    if (obj){
+                        result.push(obj);
+                    }
+                    obj = t;
+                    obj.fullname = [t.fullname];
+                    return;
+                }
+                obj.sum += t.sum;
+                if (_.contains(obj.fullname, t.fullname) === false){
+                    obj.fullname.push(t.fullname);
+                }
+            });
+            if (obj){
+                result.push(obj);
+            }
+            return result;
+        }
+        function merge_timesheets(ts){
+            _.each(ts, function(t){
+                wr_cache[t.request_id].timesheet_hours = t.sum;
+                wr_cache[t.request_id].timesheet_names = t.fullname;
+            });
+            return wr_cache;
+        }
+        function print_wrs(){
+            wr_tree.forEach(function(n){
+                print_wr(n[1])(wr_cache[n[0]]);
+            });
+            process.exit(0);
+        }
+        fetch_timesheets();
+        function exit(){
+            process.exit(0);
+        }
     };
 
     db_connector(config.db)
@@ -142,6 +204,9 @@ function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
 var wr_cache = {}; // WR objects keyed on request_id
 
 function cache(wr){
+    // TODO: extend
+    wr.timesheet_hours = 0;
+    wr.timesheet_names = [];
     wr_cache[wr.wr] = wr;
     return wr;
 }
@@ -188,7 +253,7 @@ function load_child(depth, wr){
                     .then(bind(grab, 'rows')).fail(die)
                     .then(squash)
                     .then(bind(load_child_quotes, wr))
-                    .then(bind(load_child_timesheets, wr))
+                    //.then(bind(load_child_timesheets, wr))
                     //.then(tap('result of timesheets: '))
                     .then(cache);
                     ;
