@@ -6,17 +6,21 @@
 var pg      = require('pg'),
     q       = require('kew'),
     _       = require('underscore')._,
+    libdb   = require('./db.js'),
     assert  = require('assert'),
     moment  = require('moment'),
+    bind    = require('./common.js').bind,
+    die     = require('./common.js').die,
+    tap     = require('./common.js').tap,
     getopt  = require('posix-getopt');
 
 function usage(){
     die(
         'Usage: wrms-cli [options] <wr...>' +
         '\n\t--allocated-to <user> (Filter by case-insensitive regex, e.g. "james|sam")' +
-        '\n\t--host <db-host=\033[1m' + config.db.host + '\033[0m>' +
+        '\n\t--host <db-host=\033[1m' + libdb.config.host + '\033[0m>' +
         '\n\t--format [\033[1mpretty\033[0m|csv]' +
-        '\n\t--port <port=\033[1m' + config.db.port + '\033[0m>' +
+        '\n\t--port <port=\033[1m' + libdb.config.port + '\033[0m>' +
         '\n\t--sort-by [wr|brief|\033[1mstatus\033[0m]' +
         '\n\t--verbose' +
         ''
@@ -24,21 +28,12 @@ function usage(){
 }
 
 var config = {
-    db: {
-        user: 'wrms_readonly',
-        password: '',
-        database: 'wrms',
-        host: 'db1.db.catalyst.net.nz',
-        port: 5433
-    },
     sort_by: 'status',
     allocated_to: null,
     output: 'pretty',
     verbose: false,
     wrs: []
 };
-
-var db = null;
 
 (function(){
     var parser = new getopt.BasicParser('v(verbose)a:(allocated-to)f:(format)s:(sort-by)h:(host)p:(port)', process.argv);
@@ -49,7 +44,7 @@ var db = null;
                 config.allocated_to = option.optarg;
                 break;
             case 'h':
-                config.db.host = option.optarg;
+                libdb.config.host = option.optarg;
                 break;
             case 's':
                 if (option.optarg.match(/^(wr|brief|status)$/)){
@@ -66,8 +61,8 @@ var db = null;
                 }
                 break;
             case 'p':
-                config.db.port = parseInt(option.optarg);
-                if (isNaN(config.db.port)){
+                libdb.config.port = parseInt(option.optarg);
+                if (isNaN(libdb.config.port)){
                     die('Invalid database port "' + option.optarg + '"');
                 }
                 break;
@@ -83,20 +78,12 @@ var db = null;
 
     var after = function(){
         function fetch_timesheets(){
-            var p = q.defer();
-            var sql =   "select ra.request_id,ra.date,u.fullname,SUM(ra.hours) " +
-                        "from request_activity ra, usr u " +
-                        "where ra.source='timesheet' and " +
-                        "      u.user_no=ra.worker_id and " +
-                        "      request_id in (" + _.keys(wr_cache).join(',') + ") " +
-                        "group by ra.request_id,ra.date,u.fullname " +
-                        "order by ra.request_id,ra.date asc";
-            db.query(sql, p.makeNodeResolver());
-            return p.promise
-                    .then(function(result){
-                        print_wrs(merge_timesheets(squash_timesheets(result)));
-                    })
-                    .fail(die);
+            return libdb.fetch_timesheets(_.keys(wr_cache))
+                        .then(tap('fetch_timesheets:\n'))
+                        .then(function(result){
+                            print_wrs(merge_timesheets(squash_timesheets(result)));
+                        })
+                        .fail(die);
         };
         // TODO: Maybe need totals by month and by week? How carve up month border in week-view?
         function is_same_date(a, b){
@@ -146,37 +133,14 @@ var db = null;
         }
     };
 
-    db_connector(config.db)
-        .then(bind(iterate_over_children, 0, null, config.wrs, after)).fail(die)
-        ;
+    libdb.init().then(bind(iterate_over_children, 0, null, config.wrs, after)).fail(die);
 })();
 
-function db_connector(cfg){
-    db = new pg.Client(cfg);
-    var p = q.defer();
-    db.connect(p.makeNodeResolver());
-    return p.promise;
-}
-
 function fetch_children(wr){
-    var sql =   'select rr.to_request_id as wr, ' +
-                       'r.brief, ' +
-                       'lc.lookup_desc ' +
-                'from request_request rr ' +
-                'join request r on r.request_id=rr.to_request_id ' +
-                'left join lookup_code lc on lc.source_table=\'request\' and ' +
-                                            'lc.source_field=\'status_code\' and ' +
-                                            'lc.lookup_code=r.last_status ' +
-                'where rr.request_id=$1 and ' +
-                      'rr.link_type=\'I\' ' +
-                'order by ' + (config.sort_by === 'wr'      ? 'rr.to_request_id' :
-                               config.sort_by === 'brief'   ? 'r.brief'
-                                                            : 'lc.lookup_seq,lc.lookup_desc');
-    var p = q.defer();
-    db.query(sql, [wr], p.makeNodeResolver());
-    return p.promise
-            .then(bind(grab, 'rows')).fail(die)
-            ;
+    return libdb.fetch_children(wr, config.sort_by)
+                .then(tap('fetch_children:\n'))
+                .then(bind(grab, 'rows')).fail(die)
+                ;
 }
 
 function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
@@ -235,42 +199,24 @@ function load_child(depth, wr){
             wr_cache[wr].from_cache = true;
             return q.resolve(wr_cache[wr]);
         }else{
-            var sql =   'select r.request_id as wr,' +
-                               'r.brief,' +
-                               'lc.lookup_desc as status,' +
-                               '(select usr.fullname from usr where usr.user_no=rall.allocated_to_id) as fullname, ' +
-                               'r.detailed, ' +
-                               'r.requested_by_date, ' +
-                               'r.agreed_due_date ' +
-                        'from request r ' +
-                        'left join request_allocated rall on rall.request_id=r.request_id ' +
-                        'left join lookup_code lc on lc.source_table=\'request\' and ' +
-                                                    'lc.lookup_code=r.last_status ' +
-                        'where r.request_id=$1';
-            var p = q.defer();
-            db.query(sql, [wr], p.makeNodeResolver());
-            return p.promise
-                    .then(bind(grab, 'rows')).fail(die)
-                    .then(squash)
-                    .then(bind(load_child_quotes, wr))
-                    //.then(bind(load_child_timesheets, wr))
-                    //.then(tap('result of timesheets: '))
-                    .then(cache);
-                    ;
+            return libdb.load_child(wr)
+                        .then(tap('load_child:\n'))
+                        .then(bind(grab, 'rows')).fail(die)
+                        .then(squash)
+                        .then(bind(load_child_quotes, wr))
+                        //.then(bind(load_child_timesheets, wr))
+                        //.then(tap('result of timesheets: '))
+                        .then(cache);
+                        ;
         }
     })().then(add_tree_node(depth))
         ;
 }
 
 function load_child_quotes(wr, obj){
-    var sql = 'select sum(quote_amount),quote_units,bool(approved_by_id) as approved ' +
-              'from request_quote ' +
-              'where request_id=$1 ' +
-              'group by quote_units,approved';
-    var p = q.defer();
-    db.query(sql, [wr], p.makeNodeResolver());
-    return p.promise
-            .then(bind(function(n, o, rows){ o.quotes = rows.rows; return o; }, wr, obj));
+    return libdb.load_child_quotes(wr)
+                .then(tap('load_child_quotes:\n'))
+                .then(bind(function(n, o, rows){ o.quotes = rows.rows; return o; }, wr, obj));
 }
 
 function load_child_timesheets(wr, obj){
@@ -281,23 +227,9 @@ function load_child_timesheets(wr, obj){
         }
         return o;
     }
-    var sql = "select sum(hours) from request_activity where request_id=$1 and source='timesheet'";
-    var p = q.defer();
-    db.query(sql, [wr], p.makeNodeResolver());
-    return p.promise
-            .then(bind(grab_hours, wr, obj));
-}
-
-function maybe_log(msg){
-    console.info(msg);
-}
-
-function tap(msg){
-    return function(obj){
-        maybe_log(msg + JSON.stringify(obj));
-        maybe_log('---');
-        return obj;
-    }
+    return libdb.load_child_timesheets(wr)
+                .then(tap('load_child_timesheets:\n'))
+                .then(bind(grab_hours, wr, obj));
 }
 
 var closed_statuses = ['Finished', 'Cancelled', 'Reviewed', 'Production Ready', 'Testing/Signoff', 'QA Approved'],
@@ -408,14 +340,6 @@ function grab(field, obj){
     return obj[field];
 }
 
-function bind(fn /*, ...*/){
-    var bound_args = Array.prototype.slice.call(arguments, 1);
-    return function(){
-        var args = bound_args.concat(Array.prototype.slice.call(arguments, 0));
-        return fn.apply(this, args);
-    };
-}
-
 function any_values_exist(obj){
     var result = false;
     _.each(obj, function(val){
@@ -424,11 +348,5 @@ function any_values_exist(obj){
         }
     });
     return result;
-}
-
-function die(m, r){
-    r = r || 1;
-    console.error(m);
-    process.exit(r);
 }
 
