@@ -2,6 +2,7 @@ var pg      = require('pg'),
     q       = require('kew'),
     die     = require('./common.js').die,
     bind    = require('./common.js').bind,
+    grab    = require('./common.js').grab,
     _       = require('underscore')._;
 
 var config = {
@@ -65,7 +66,8 @@ exports.fetch_children = function(request_id, sort_by){
               'rr.link_type=\'I\' ' +
         'order by ' + order,
         [request_id]
-    );
+    ).fail(die)
+     .then(bind(grab, 'rows'));
 };
 
 exports.load_child = function(request_id){
@@ -83,7 +85,8 @@ exports.load_child = function(request_id){
                                     'lc.lookup_code=r.last_status ' +
         'where r.request_id=$1',
         [request_id]
-    );
+    ).fail(die)
+     .then(bind(grab, 'rows'));
 };
 
 exports.load_child_quotes = function(request_id){

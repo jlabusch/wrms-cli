@@ -4,12 +4,30 @@ var q       = require('kew'),
     moment  = require('moment'),
     bind    = require('./common.js').bind,
     die     = require('./common.js').die,
-    tap     = require('./common.js').tap;
+    tap     = require('./common.js').tap,
+    tapf    = require('./common.js').tapf;
 
 
 var env = {
     config: null,
-    db: null
+    db: null,
+    __final: function(){
+                 wr_tree.forEach(function(n){
+                     print_wr(n[1])(wr_cache[n[0]]);
+                 });
+                 process.exit(0);
+             },
+    // testing hooks
+    __iterate_over_children: {
+        entry: null,
+        pre_exit_new: null,
+        pre_exit_cached: null,
+        pre_exit_complete: null,
+    },
+    __fetch_children: {
+        entry: null,
+        after_fetch: null,
+    },
 };
 
 function init(e){
@@ -17,27 +35,31 @@ function init(e){
 }
 
 function fetch_children(wr){
+    tapf(env.__fetch_children.entry)();
     return env.db.fetch_children(wr, env.config.sort_by)
-                 .then(tap('fetch_children:\n'))
-                 .then(bind(grab, 'rows')).fail(die)
-                 ;
+                .then(tapf(env.__fetch_children.after_fetch))
+                .then(tap('fetch_children:\n', env.config.debug));
 }
 
 function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
+    tapf(env.__iterate_over_children.entry)();
     if (typeof(on_completion) !== 'function'){
         on_completion = function(){};
     }
     var next = child_wrs.shift();
     if (!next){
+        tapf(env.__iterate_over_children.pre_exit_complete)();
         on_completion();
         return;
     }
     next = next.wr || next;
     if (wr_cache[next]){
+        tapf(env.__iterate_over_children.pre_exit_cached)();
         return load_child(depth, next)
                 .then(bind(iterate_over_children, depth, parent_wr, child_wrs, on_completion)).fail(die)
                 ;
     }
+    tapf(env.__iterate_over_children.pre_exit_new)();
     return load_child(depth, next)
             .then(bind(fetch_children, next)).fail(die)
             .then(bind(iterate_over_children, depth+1, next)).fail(die)
@@ -49,9 +71,9 @@ function run(wrs){
     var after = function(){
         function fetch_timesheets(){
             return env.db.fetch_timesheets(_.keys(wr_cache))
-                        .then(tap('fetch_timesheets:\n'))
+                        .then(tap('fetch_timesheets:\n', env.config.debug))
                         .then(function(result){
-                            print_wrs(merge_timesheets(squash_timesheets(result)));
+                            env.__final(merge_timesheets(squash_timesheets(result)));
                         })
                         .fail(die);
         };
@@ -90,12 +112,6 @@ function run(wrs){
                 wr_cache[t.request_id].timesheet_names = t.fullname;
             });
             return wr_cache;
-        }
-        function print_wrs(){
-            wr_tree.forEach(function(n){
-                print_wr(n[1])(wr_cache[n[0]]);
-            });
-            process.exit(0);
         }
         fetch_timesheets();
         function exit(){
@@ -141,8 +157,7 @@ function load_child(depth, wr){
             return q.resolve(wr_cache[wr]);
         }else{
             return env.db.load_child(wr)
-                        .then(tap('load_child:\n'))
-                        .then(bind(grab, 'rows')).fail(die)
+                        .then(tap('load_child:\n', env.config.debug))
                         .then(squash)
                         .then(bind(load_child_quotes, wr))
                         //.then(bind(load_child_timesheets, wr))
@@ -156,7 +171,7 @@ function load_child(depth, wr){
 
 function load_child_quotes(wr, obj){
     return env.db.load_child_quotes(wr)
-                .then(tap('load_child_quotes:\n'))
+                .then(tap('load_child_quotes:\n', env.config.debug))
                 .then(bind(function(n, o, rows){ o.quotes = rows.rows; return o; }, wr, obj));
 }
 
@@ -169,7 +184,7 @@ function load_child_timesheets(wr, obj){
         return o;
     }
     return env.db.load_child_timesheets(wr)
-                .then(tap('load_child_timesheets:\n'))
+                .then(tap('load_child_timesheets:\n', env.config.debug))
                 .then(bind(grab_hours, wr, obj));
 }
 
@@ -277,10 +292,6 @@ function print_wr(depth){
     };
 }
 
-function grab(field, obj){
-    return obj[field];
-}
-
 function any_values_exist(obj){
     var result = false;
     _.each(obj, function(val){
@@ -293,4 +304,5 @@ function any_values_exist(obj){
 
 exports.init = init;
 exports.run = run;
+
 

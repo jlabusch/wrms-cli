@@ -1,21 +1,43 @@
 
-function maybe_log(msg){
-    console.info(msg);
-}
-
-function tap(msg){
+// If cond is provided, we only log if its value is true-ish.
+function tap(msg, cond){
+    msg = msg || '';
+    cond = arguments.length < 2 || cond;
     return function(obj){
-        maybe_log(msg + JSON.stringify(obj));
-        maybe_log('---');
+        if (cond){
+            console.log(msg + JSON.stringify(obj));
+            console.log('---');
+        }
         return obj;
     }
 }
+exports.tap = tap;
+
+// As tap(), but run the object through fn() instead of printing it.
+function tapf(fn, cond){
+    fn = fn || function(){};
+    cond = arguments.length < 2 || cond;
+    return function(obj){
+        if (cond){
+            fn(obj);
+        }
+        return obj;
+    };
+}
+exports.tapf = tapf;
+
+// The arguments are in this order so that you can bind(field) and use the result with kew.
+function grab(field, obj){
+    return obj[field];
+}
+exports.grab = grab;
 
 function die(m, r){
     r = r || 1;
     console.error(m);
     process.exit(r);
 }
+exports.die = die;
 
 function bind(fn /*, ...*/){
     var bound_args = Array.prototype.slice.call(arguments, 1);
@@ -24,9 +46,6 @@ function bind(fn /*, ...*/){
         return fn.apply(this, args);
     };
 }
-
-exports.tap = tap;
 exports.bind = bind;
-exports.die = die;
 
 

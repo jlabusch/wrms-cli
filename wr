@@ -3,27 +3,23 @@
 // TODO: Yank out per-WR queries (like timesheets) into post processing
 // TODO: Add timesheet-centric output variant
 
-var pg      = require('pg'),
-    q       = require('kew'),
-    _       = require('underscore')._,
-    libdb   = require('./db.js'),
+var _       = require('underscore')._,
+    db      = require('./db.js'),
     wrms_cli= require('./wrms_cli.js'),
-    assert  = require('assert'),
-    moment  = require('moment'),
     bind    = require('./common.js').bind,
     die     = require('./common.js').die,
-    tap     = require('./common.js').tap,
     getopt  = require('posix-getopt');
 
 function usage(){
     die(
         'Usage: wrms-cli [options] <wr...>' +
         '\n\t--allocated-to <user> (Filter by case-insensitive regex, e.g. "james|sam")' +
-        '\n\t--host <db-host=\033[1m' + libdb.config.host + '\033[0m>' +
+        '\n\t--host <db-host=\033[1m' + db.config.host + '\033[0m>' +
         '\n\t--format [\033[1mpretty\033[0m|csv]' +
-        '\n\t--port <port=\033[1m' + libdb.config.port + '\033[0m>' +
+        '\n\t--port <port=\033[1m' + db.config.port + '\033[0m>' +
         '\n\t--sort-by [wr|brief|\033[1mstatus\033[0m]' +
         '\n\t--verbose' +
+        '\n\t--debug' +
         ''
     );
 }
@@ -32,11 +28,12 @@ var config = {
     sort_by: 'status',
     allocated_to: null,
     output: 'pretty',
-    verbose: false
+    verbose: false,
+    debug: false
 };
 
 (function(){
-    var parser = new getopt.BasicParser('v(verbose)a:(allocated-to)f:(format)s:(sort-by)h:(host)p:(port)', process.argv);
+    var parser = new getopt.BasicParser('d(debug)v(verbose)a:(allocated-to)f:(format)s:(sort-by)h:(host)p:(port)', process.argv);
     var option = undefined;
     while ((option = parser.getopt()) !== undefined){
         switch (option.option){
@@ -44,7 +41,7 @@ var config = {
                 config.allocated_to = option.optarg;
                 break;
             case 'h':
-                libdb.config.host = option.optarg;
+                db.config.host = option.optarg;
                 break;
             case 's':
                 if (option.optarg.match(/^(wr|brief|status)$/)){
@@ -61,10 +58,13 @@ var config = {
                 }
                 break;
             case 'p':
-                libdb.config.port = parseInt(option.optarg);
-                if (isNaN(libdb.config.port)){
+                db.config.port = parseInt(option.optarg);
+                if (isNaN(db.config.port)){
                     die('Invalid database port "' + option.optarg + '"');
                 }
+                break;
+            case 'd':
+                config.debug = true;
                 break;
             case 'v':
                 config.verbose = true;
@@ -78,8 +78,8 @@ var config = {
 
     wrms_cli.init({
         config: config,
-        db: libdb
+        db: db
     });
-    libdb.init().then(bind(wrms_cli.run, wrs)).fail(die);
+    db.init().then(bind(wrms_cli.run, wrs)).fail(die);
 })();
 
