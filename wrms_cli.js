@@ -350,7 +350,7 @@ function print_timesheets(ts){
                     head.push(w);
                 }
                 var cell = grid[request_id][to_id(y, w)];
-                line.push(cell === undefined ? '-' : cell.toFixed(2));
+                line.push(cell === undefined ? '0' : cell.toFixed(2));
             });
         });
         if (head){
