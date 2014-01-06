@@ -345,7 +345,7 @@ function print_timesheets(ts){
         grid[request_id] = grid[request_id] || {};
         var line = [request_id, clamp_str(wr_cache[request_id].brief)];
         _.each(_.keys(date_ranges), function(y){
-            _.range(date_ranges[y].min, date_ranges[y].max).forEach(function(w){
+            _.range(date_ranges[y].min, date_ranges[y].max+1).forEach(function(w){
                 if (head){
                     head.push(w);
                 }
