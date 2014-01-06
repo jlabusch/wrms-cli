@@ -20,7 +20,6 @@ var db = null;
 exports.init = function(overrides){
     overrides = overrides || {};
     _.extend(config, overrides);
-    console.info('db.init: ' + JSON.stringify(config));
     db = new pg.Client(config);
     var p = q.defer();
     db.connect(p.makeNodeResolver());

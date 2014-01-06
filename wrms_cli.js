@@ -11,12 +11,6 @@ var q       = require('kew'),
 var env = {
     config: null,
     db: null,
-    __final: function(){
-                 wr_tree.forEach(function(n){
-                     print_wr(n[1])(wr_cache[n[0]]);
-                 });
-                 process.exit(0);
-             },
     // testing hooks
     __iterate_over_children: {
         entry: null,
@@ -28,6 +22,16 @@ var env = {
         entry: null,
         after_fetch: null,
     },
+    __load_child: {
+        entry: null,
+        after_fetch: null,
+        pre_exit_new: null,
+        pre_exit_cached: null,
+    },
+    __load_child_quotes: {
+        entry: null,
+        after_fetch: null,
+    },
 };
 
 function init(e){
@@ -35,14 +39,14 @@ function init(e){
 }
 
 function fetch_children(wr){
-    tapf(env.__fetch_children.entry)();
+    tapf(env.__fetch_children.entry)(wr);
     return env.db.fetch_children(wr, env.config.sort_by)
                 .then(tapf(env.__fetch_children.after_fetch))
                 .then(tap('fetch_children:\n', env.config.debug));
 }
 
 function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
-    tapf(env.__iterate_over_children.entry)();
+    tapf(env.__iterate_over_children.entry)(depth, parent_wr, child_wrs);
     if (typeof(on_completion) !== 'function'){
         on_completion = function(){};
     }
@@ -67,57 +71,40 @@ function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
             ;
 }
 
+function print_wr_view(){
+    function ignore_date(){
+        return 1;
+    }
+    function merge_timesheets(ts){
+        _.each(ts, function(t){
+            wr_cache[t.request_id].timesheet_hours = t.sum;
+            wr_cache[t.request_id].timesheet_names = t.fullname;
+        });
+        return wr_cache;
+    }
+    return env.db.fetch_timesheets(_.keys(wr_cache))
+                .then(tap('fetch_timesheets:\n', env.config.debug))
+                .then(function(result){
+                    print_wrs(merge_timesheets(squash_timesheets(ignore_date, result)));
+                })
+                .fail(die);
+}
+
+function print_timesheet_view(){
+    function by_week(a){
+        var m = moment(a);
+        return m.weekYear()*100 + m.week();
+    }
+    return env.db.fetch_timesheets(_.keys(wr_cache))
+                 .then(tap('fetch_timesheets:\n', env.config.debug))
+                 .then(function(result){
+                     print_timesheets(squash_timesheets(by_week, result));
+                 })
+                 .fail(die);
+}
+
 function run(wrs){
-    var after = function(){
-        function fetch_timesheets(){
-            return env.db.fetch_timesheets(_.keys(wr_cache))
-                        .then(tap('fetch_timesheets:\n', env.config.debug))
-                        .then(function(result){
-                            env.__final(merge_timesheets(squash_timesheets(result)));
-                        })
-                        .fail(die);
-        };
-        // TODO: Maybe need totals by month and by week? How carve up month border in week-view?
-        function is_same_date(a, b){
-            return true;
-            //var as = ('' + a).substr(0, 10);
-            //var bs = ('' + b).substr(0, 10);
-            //return as === bs;
-        }
-        function squash_timesheets(ts){
-            var result = [];
-            var obj = null;
-            _.each(ts.rows, function(t){
-                if (!obj || t.request_id !== obj.request_id || !is_same_date(t.date, obj.date)){
-                    if (obj){
-                        result.push(obj);
-                    }
-                    obj = t;
-                    obj.fullname = [t.fullname];
-                    return;
-                }
-                obj.sum += t.sum;
-                if (_.contains(obj.fullname, t.fullname) === false){
-                    obj.fullname.push(t.fullname);
-                }
-            });
-            if (obj){
-                result.push(obj);
-            }
-            return result;
-        }
-        function merge_timesheets(ts){
-            _.each(ts, function(t){
-                wr_cache[t.request_id].timesheet_hours = t.sum;
-                wr_cache[t.request_id].timesheet_names = t.fullname;
-            });
-            return wr_cache;
-        }
-        fetch_timesheets();
-        function exit(){
-            process.exit(0);
-        }
-    };
+    var after = env.config.on_completion == 'wr_view' ? print_wr_view : print_timesheet_view;
 
     return iterate_over_children(0, null, wrs, after).fail(die);
 }
@@ -152,17 +139,21 @@ function squash(rows){
 
 function load_child(depth, wr){
     return (function(){
+        tapf(env.__load_child.entry)(depth, wr);
         if (wr_cache[wr]){
             wr_cache[wr].from_cache = true;
+            tapf(env.__load_child.pre_exit_cached)(wr_cache[wr]);
             return q.resolve(wr_cache[wr]);
         }else{
             return env.db.load_child(wr)
+                        .then(tapf(env.__load_child.after_fetch))
                         .then(tap('load_child:\n', env.config.debug))
                         .then(squash)
                         .then(bind(load_child_quotes, wr))
                         //.then(bind(load_child_timesheets, wr))
                         //.then(tap('result of timesheets: '))
-                        .then(cache);
+                        .then(cache)
+                        .then(tapf(env.__load_child.pre_exit_new))
                         ;
         }
     })().then(add_tree_node(depth))
@@ -170,7 +161,9 @@ function load_child(depth, wr){
 }
 
 function load_child_quotes(wr, obj){
+    tapf(env.__load_child_quotes.entry)(wr, obj);
     return env.db.load_child_quotes(wr)
+                .then(tapf(env.__load_child_quotes.after_fetch))
                 .then(tap('load_child_quotes:\n', env.config.debug))
                 .then(bind(function(n, o, rows){ o.quotes = rows.rows; return o; }, wr, obj));
 }
@@ -186,6 +179,31 @@ function load_child_timesheets(wr, obj){
     return env.db.load_child_timesheets(wr)
                 .then(tap('load_child_timesheets:\n', env.config.debug))
                 .then(bind(grab_hours, wr, obj));
+}
+
+function squash_timesheets(date_id_fn, ts){
+    var result = [];
+    var obj = null;
+    _.each(ts.rows, function(t){
+        var date_id_t = date_id_fn(t.date);
+        if (!obj || t.request_id !== obj.request_id || date_id_t !== obj.date_id){
+            if (obj){
+                result.push(obj);
+            }
+            obj = t;
+            obj.fullname = [t.fullname];
+            obj.date_id = date_id_t;
+            return;
+        }
+        obj.sum += t.sum;
+        if (_.contains(obj.fullname, t.fullname) === false){
+            obj.fullname.push(t.fullname);
+        }
+    });
+    if (obj){
+        result.push(obj);
+    }
+    return result;
 }
 
 var closed_statuses = ['Finished', 'Cancelled', 'Reviewed', 'Production Ready', 'Testing/Signoff', 'QA Approved'],
@@ -290,6 +308,54 @@ function print_wr(depth){
         }
         return o;
     };
+}
+
+function print_wrs(){
+     wr_tree.forEach(function(n){
+         print_wr(n[1])(wr_cache[n[0]]);
+     });
+     process.exit(0);
+}
+
+function print_timesheets(ts){
+    if (ts.length < 1){
+        return {};
+    }
+    var min = function(a, b){ return a < b ? a : b; };
+    var max = function(a, b){ return a > b ? a : b; };
+    var yr = function(x){ return Math.floor(x/100); };
+    var wk = function(x){ return x%100; };
+    var to_id = function(y, w){ return y*100 + w; };
+    var date_ranges = {};
+    var grid = {};
+    ts.forEach(function(t){
+        var y = yr(t.date_id);
+        date_ranges[y] = date_ranges[y] || {min: 999, max: -999};
+        date_ranges[y].min = min(wk(t.date_id), date_ranges[y].min);
+        date_ranges[y].max = max(wk(t.date_id), date_ranges[y].max);
+        grid[t.request_id] = grid[t.request_id] || {};
+        grid[t.request_id][t.date_id] = t.sum;
+    });
+    var head = ['WR'];
+    _.each(_.keys(grid), function(request_id){
+        grid[request_id] = grid[request_id] || {};
+        var line = [request_id];
+        _.each(_.keys(date_ranges), function(y){
+            _.range(date_ranges[y].min, date_ranges[y].max).forEach(function(w){
+                if (head){
+                    head.push(w);
+                }
+                var cell = grid[request_id][to_id(y, w)];
+                line.push(cell === undefined ? '-' : cell.toFixed(2));
+            });
+        });
+        if (head){
+            console.log(head.join('\t'));
+            head = null;
+        }
+        console.log(line.join('\t'));
+    });
+    process.exit(0);
 }
 
 function any_values_exist(obj){
