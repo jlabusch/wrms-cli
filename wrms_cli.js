@@ -321,11 +321,15 @@ function print_timesheets(ts){
     if (ts.length < 1){
         return {};
     }
-    var min = function(a, b){ return a < b ? a : b; };
-    var max = function(a, b){ return a > b ? a : b; };
-    var yr = function(x){ return Math.floor(x/100); };
-    var wk = function(x){ return x%100; };
-    var to_id = function(y, w){ return y*100 + w; };
+    function min(a, b){ return a < b ? a : b; };
+    function max(a, b){ return a > b ? a : b; };
+    function yr(x){ return Math.floor(x/100); };
+    function wk(x){ return x%100; };
+    function to_id(y, w){ return y*100 + w; };
+    function clamp_str(str){
+        var n = 45;
+        return str.length > n ? (str.substr(0, n-3) + '...') : (str + Array(n-str.length).join(' '));
+    }
     var date_ranges = {};
     var grid = {};
     ts.forEach(function(t){
@@ -336,10 +340,10 @@ function print_timesheets(ts){
         grid[t.request_id] = grid[t.request_id] || {};
         grid[t.request_id][t.date_id] = t.sum;
     });
-    var head = ['WR'];
+    var head = ['WR', clamp_str('Brief')];
     _.each(_.keys(grid), function(request_id){
         grid[request_id] = grid[request_id] || {};
-        var line = [request_id];
+        var line = [request_id, clamp_str(wr_cache[request_id].brief)];
         _.each(_.keys(date_ranges), function(y){
             _.range(date_ranges[y].min, date_ranges[y].max).forEach(function(w){
                 if (head){
