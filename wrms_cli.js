@@ -340,22 +340,28 @@ function print_timesheets(ts){
         grid[t.request_id] = grid[t.request_id] || {};
         grid[t.request_id][t.date_id] = t.sum;
     });
-    var head = ['WR', clamp_str('Brief')];
+    var head_month = [' ', clamp_str(' ')];
+    var head_week = ['WR', clamp_str('Brief')];
     _.each(_.keys(grid), function(request_id){
         grid[request_id] = grid[request_id] || {};
         var line = [request_id, clamp_str(wr_cache[request_id].brief)];
         _.each(_.keys(date_ranges), function(y){
             _.range(date_ranges[y].min, date_ranges[y].max+1).forEach(function(w){
-                if (head){
-                    head.push(w);
+                if (head_month){
+                    head_month.push(moment().years(y).weeks(w).format('MMM'));
+                }
+                if (head_week){
+                    head_week.push(w);
                 }
                 var cell = grid[request_id][to_id(y, w)];
                 line.push(cell === undefined ? '0' : cell.toFixed(2));
             });
         });
-        if (head){
-            console.log(head.join('\t'));
-            head = null;
+        if (head_week){
+            console.log(head_month.join('\t'));
+            console.log(head_week.join('\t'));
+            head_month = null;
+            head_week = null;
         }
         console.log(line.join('\t'));
     });
