@@ -351,7 +351,7 @@ function print_timesheets(ts){
                     head_month.push(moment().years(y).weeks(w).format('MMM'));
                 }
                 if (head_week){
-                    head_week.push(w);
+                    head_week.push('wk ' + w);
                 }
                 var cell = grid[request_id][to_id(y, w)];
                 line.push(cell === undefined ? '0' : cell.toFixed(2));
