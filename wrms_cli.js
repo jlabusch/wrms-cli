@@ -55,8 +55,7 @@ function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
     var next = child_wrs.shift();
     if (!next){
         tapf(env.__iterate_over_children.pre_exit_complete)();
-        on_completion(wr_cache);
-        return;
+        return on_completion(wr_cache);
     }
     next = next.wr || next;
     if (wr_cache[next]){
@@ -87,9 +86,10 @@ function print_wr_view(wr_data){
     return env.db.fetch_timesheets(_.keys(wr_cache))
                 .then(tap('fetch_timesheets:\n', env.config.debug))
                 .then(function(result){
-                    print_wrs(merge_timesheets(squash_timesheets(ignore_date, result)));
+                    return print_wrs(merge_timesheets(squash_timesheets(ignore_date, result)));
                 })
-                .fail(die);
+                .fail(die)
+                ;
 }
 
 function print_timesheet_view(wr_data){
@@ -100,9 +100,10 @@ function print_timesheet_view(wr_data){
     return env.db.fetch_timesheets(_.keys(wr_cache))
                  .then(tap('fetch_timesheets:\n', env.config.debug))
                  .then(function(result){
-                     print_timesheets(squash_timesheets(by_week, result));
+                     return print_timesheets(squash_timesheets(by_week, result));
                  })
-                 .fail(die);
+                 .fail(die)
+                 ;
 }
 
 function run(wrs){
@@ -159,8 +160,6 @@ function load_child(depth, wr){
                         .then(tap('load_child:\n', env.config.debug))
                         .then(squash)
                         .then(bind(load_child_quotes, wr))
-                        //.then(bind(load_child_timesheets, wr))
-                        //.then(tap('result of timesheets: '))
                         .then(cache)
                         .then(tapf(env.__load_child.pre_exit_new))
                         ;
@@ -323,7 +322,7 @@ function print_wrs(){
      wr_tree.forEach(function(n){
          print_wr(n[1])(wr_cache[n[0]]);
      });
-     process.exit(0);
+     return q.resolve(true);
 }
 
 function print_timesheets(ts){
@@ -374,7 +373,7 @@ function print_timesheets(ts){
         }
         console.log(line.join('\t'));
     });
-    process.exit(0);
+     return q.resolve(true);
 }
 
 function any_values_exist(obj){

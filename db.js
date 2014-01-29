@@ -2,7 +2,9 @@ var pg      = require('pg'),
     q       = require('kew'),
     die     = require('./common.js').die,
     bind    = require('./common.js').bind,
+    tap     = require('./common.js').tap,
     grab    = require('./common.js').grab,
+    util    = require('util'),
     _       = require('underscore')._;
 
 var config = {
@@ -12,6 +14,19 @@ var config = {
     host: 'db1.db.catalyst.net.nz',
     port: 5433
 };
+
+var test_template = {};
+
+function add_to_template(k){
+    return function(v){
+        if (!test_template[k]){
+            test_template[k] = [];
+        }
+        // Make sure we don't get bitten by references...
+        test_template[k].push(JSON.parse(JSON.stringify(v)));
+        return v;
+    }
+}
 
 exports.config = config;
 
@@ -24,6 +39,11 @@ exports.init = function(overrides){
     var p = q.defer();
     db.connect(p.makeNodeResolver());
     return p.promise.fail(die);
+};
+
+exports.close = function(){
+    // Uncomment this to create JSON dumps you can replay from test_db.js in testing.
+    console.log(JSON.stringify(test_template));
 };
 
 function query(sql, args){
@@ -66,7 +86,9 @@ exports.fetch_children = function(request_id, sort_by){
         'order by ' + order,
         [request_id]
     ).fail(die)
-     .then(bind(grab, 'rows'));
+     .then(bind(grab, 'rows'))
+     .then(add_to_template('fetch_children'))
+     ;
 };
 
 exports.load_child = function(request_id){
@@ -85,7 +107,9 @@ exports.load_child = function(request_id){
         'where r.request_id=$1',
         [request_id]
     ).fail(die)
-     .then(bind(grab, 'rows'));
+     .then(bind(grab, 'rows'))
+     .then(add_to_template('load_child'))
+     ;
 };
 
 exports.load_child_quotes = function(request_id){
@@ -95,14 +119,18 @@ exports.load_child_quotes = function(request_id){
         'where request_id=$1 ' +
         'group by quote_units,approved',
         [request_id]
-    );
+    )
+    .then(add_to_template('load_child_quotes'))
+    ;
 };
 
 exports.load_child_timesheets = function(request_id){
     return query(
         "select sum(hours) from request_activity where request_id=$1 and source='timesheet'",
         [request_id]
-    );
+    )
+    .then(add_to_template('load_child_timesheets'))
+    ;
 };
 
 
