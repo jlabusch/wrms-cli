@@ -11,6 +11,8 @@ var q       = require('kew'),
 var env = {
     config: null,
     db: null,
+    wr_view: print_wr_view,
+    timesheet_view: print_timesheet_view,
     // testing hooks
     __iterate_over_children: {
         entry: null,
@@ -53,7 +55,7 @@ function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
     var next = child_wrs.shift();
     if (!next){
         tapf(env.__iterate_over_children.pre_exit_complete)();
-        on_completion();
+        on_completion(wr_cache);
         return;
     }
     next = next.wr || next;
@@ -71,7 +73,7 @@ function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
             ;
 }
 
-function print_wr_view(){
+function print_wr_view(wr_data){
     function ignore_date(){
         return 1;
     }
@@ -90,7 +92,7 @@ function print_wr_view(){
                 .fail(die);
 }
 
-function print_timesheet_view(){
+function print_timesheet_view(wr_data){
     function by_week(a){
         var m = moment(a);
         return m.weekYear()*100 + m.week();
@@ -104,7 +106,14 @@ function print_timesheet_view(){
 }
 
 function run(wrs){
-    var after = env.config.on_completion == 'wr_view' ? print_wr_view : print_timesheet_view;
+    wr_cache = {};
+    var after = null;
+    try{
+        after = env[env.config.on_completion];
+    }catch(ex){}
+    if (typeof(after) !== 'function'){
+        after = print_wr_view;
+    }
 
     return iterate_over_children(0, null, wrs, after).fail(die);
 }
