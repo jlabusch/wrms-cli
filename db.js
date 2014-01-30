@@ -43,7 +43,7 @@ exports.init = function(overrides){
 
 exports.close = function(){
     // Uncomment this to create JSON dumps you can replay from test_db.js in testing.
-    console.log(JSON.stringify(test_template));
+    //console.log(JSON.stringify(test_template));
 };
 
 function query(sql, args){

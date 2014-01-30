@@ -8,9 +8,6 @@ var _       = require('underscore')._,
 
 var default_test_f = function(data){};
 var test_f = default_test_f;
-function test_completion(data){
-    test_f(data);
-}
 
 var child_counters = {
     loaded: 0,
@@ -33,7 +30,7 @@ var env = {
         pre_exit_new: function(){ child_counters.loaded++; },
         pre_exit_cached: function(w){ child_counters.cached++; }
     },
-    test_completion: test_completion
+    test_completion: function(d){ test_f(d); }
 };
 
 describe('hello world', function(){

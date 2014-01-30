@@ -93,6 +93,6 @@ var config = {
         }
         process.exit(0);
     }
-    db.init().then(bind(wrms_cli.run, wrs)).fail(die).then(finish);
+    db.init().then(bind(wrms_cli.run, wrs)).fail(die).fin(finish);
 })();
 
