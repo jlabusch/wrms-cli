@@ -68,6 +68,17 @@ exports.fetch_timesheets = function(request_ids){
     );
 };
 
+exports.fetch_timesheets_detail = function(request_ids){
+    return query(
+        "select ra.request_id,ra.date,u.fullname,ra.note,ra.hours " +
+        "from request_activity ra, usr u " +
+        "where ra.source='timesheet' and " +
+        "      u.user_no=ra.worker_id and " +
+        "      request_id in (" + request_ids.join(',') + ") " +
+        "order by ra.request_id,ra.date,ra.note asc"
+    );
+};
+
 exports.fetch_children = function(request_id, sort_by){
     var order = sort_by === 'wr'      ? 'rr.to_request_id' :
                 sort_by === 'brief'   ? 'r.brief'

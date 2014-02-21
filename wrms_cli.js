@@ -97,13 +97,21 @@ function print_timesheet_view(wr_data){
         var m = moment(a);
         return m.weekYear()*100 + m.week();
     }
-    return env.db.fetch_timesheets(_.keys(wr_cache))
+    return env.config.verbose ?
+           env.db.fetch_timesheets_detail(_.keys(wr_cache))
+                 .then(tap('fetch_timesheets_detail:\n', env.config.debug))
+                 .then(function(result){
+                     return print_timesheets_detail(result);
+                 })
+                 .fail(die)
+           :
+           env.db.fetch_timesheets(_.keys(wr_cache))
                  .then(tap('fetch_timesheets:\n', env.config.debug))
                  .then(function(result){
                      return print_timesheets(squash_timesheets(by_week, result));
                  })
                  .fail(die)
-                 ;
+           ;
 }
 
 function run(wrs){
@@ -319,10 +327,17 @@ function print_wr(depth){
 }
 
 function print_wrs(){
-     wr_tree.forEach(function(n){
-         print_wr(n[1])(wr_cache[n[0]]);
-     });
-     return q.resolve(true);
+    wr_tree.forEach(function(n){
+        print_wr(n[1])(wr_cache[n[0]]);
+    });
+    return q.resolve(true);
+}
+
+function print_timesheets_detail(ts){
+    ts.rows.forEach(function(t){
+        console.log(t.request_id + '\t' + moment(t.date).format("YYYY/MM/DD") + '\t' + t.hours + '\t' + t.note);
+    });
+    return q.resolve(true);
 }
 
 function print_timesheets(ts){
