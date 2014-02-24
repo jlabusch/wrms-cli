@@ -1,0 +1,1073 @@
+{
+    "fetch_children": [
+        [
+            {
+                "brief": "[BAU] Pointers not displaying on preview or live for up to 20 minutes",
+                "lookup_desc": "Finished",
+                "wr": 205107
+            },
+            {
+                "brief": "[ZEUS] Most Popular/Shared/Commented JSON Feeds [MANUAL BILLING]",
+                "lookup_desc": "Finished",
+                "wr": 208994
+            },
+            {
+                "brief": "Prevent the CMA from sending 100,000 extraneous Memcached events.",
+                "lookup_desc": "Finished",
+                "wr": 210719
+            },
+            {
+                "brief": "[BAU] Adding text to a strap",
+                "lookup_desc": "Finished",
+                "wr": 210997
+            },
+            {
+                "brief": "Users with site-view=m redirected to \"undefined\"",
+                "lookup_desc": "Finished",
+                "wr": 210998
+            },
+            {
+                "brief": "Audit of 'iframe buster' files",
+                "lookup_desc": "Finished",
+                "wr": 211973
+            },
+            {
+                "brief": "Install/configure Varnish on testing and preprod",
+                "lookup_desc": "Finished",
+                "wr": 212002
+            },
+            {
+                "brief": "New Gitosis branch for new Deals Section Template",
+                "lookup_desc": "Finished",
+                "wr": 212030
+            },
+            {
+                "brief": "[Bug] Site Intercept Code from 210669 not showing in Stuff, i.stuff and EM headers",
+                "lookup_desc": "Finished",
+                "wr": 212052
+            },
+            {
+                "brief": "wurfl-check.pl is not helpful",
+                "lookup_desc": "Finished",
+                "wr": 212062
+            },
+            {
+                "brief": "autobuild/cma/auto_update.sh: misspelled command",
+                "lookup_desc": "Finished",
+                "wr": 212063
+            },
+            {
+                "brief": "[BAU] [Bug] - New ad spaces aren't lining up correctly",
+                "lookup_desc": "Finished",
+                "wr": 212133
+            },
+            {
+                "brief": "Move the Site Intercept Code to the bottom of the page",
+                "lookup_desc": "Finished",
+                "wr": 212285
+            },
+            {
+                "brief": "[BAU] URL Redirect - Canterbury Babies",
+                "lookup_desc": "Finished",
+                "wr": 212387
+            },
+            {
+                "brief": "CMA audit request",
+                "lookup_desc": "Finished",
+                "wr": 212418
+            },
+            {
+                "brief": "Update Site Intercept code",
+                "lookup_desc": "Finished",
+                "wr": 212438
+            }
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [
+            {
+                "brief": "Move the Site Intercept Code to the bottom of the page",
+                "lookup_desc": "Finished",
+                "wr": 212285
+            }
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+    ],
+    "load_child": [
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "Iteration Zoolander",
+                "detailed": "testing_version: 3.11\r\nversion: 3.12\r\ndb_patch_level: ",
+                "fullname": null,
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 94701
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "[BAU] Pointers not displaying on preview or live for up to 20 minutes",
+                "detailed": "There have been two or three instances in the last couple of days where a pointer has been created and taken up to twenty minutes to display in one instance the live site updated before preview.\r\n\r\nWe've noticed this on midstrips, the uber pointer and the right hand column all on the homepage \r\n\r\n",
+                "fullname": "Will Stokes",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 205107
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "[ZEUS] Most Popular/Shared/Commented JSON Feeds [MANUAL BILLING]",
+                "detailed": "Work related to Most Popular/Shared/Commented JSON feeds for CQ",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 208994
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "Prevent the CMA from sending 100,000 extraneous Memcached events.",
+                "detailed": "Over a five minute period we see 400,000 memcache events in the\r\nproduction memcache cluster in one data center.\r\nOf these memcache events, 100,000 come from the CMA and should not be\r\nhitting the production memcache pool.\r\nThese additional 100,000 per five minutes are also passed over the VPN.\r\nThis is a long standing issue and should be rectified as it will lower\r\nfront-end web-server CPU usage and reduce load on the VPN.",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 210719
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "[BAU] Adding text to a strap",
+                "detailed": "Hi there,\r\n\r\nI've had a request to add some text to a strap (see sample image) on the Travel Landing page.\r\n\r\nCould we please get a quote for adding the HTML to the section landing template and also for getting a Gitosis branch so Lewis can apply the styles we'd need for this piece of work?\r\n\r\nCheers,\r\n\r\nAdrienne\r\n\r\n",
+                "fullname": "Will Stokes",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 210997
+            },
+            {
+                "agreed_due_date": null,
+                "brief": "[BAU] Adding text to a strap",
+                "detailed": "Hi there,\r\n\r\nI've had a request to add some text to a strap (see sample image) on the Travel Landing page.\r\n\r\nCould we please get a quote for adding the HTML to the section landing template and also for getting a Gitosis branch so Lewis can apply the styles we'd need for this piece of work?\r\n\r\nCheers,\r\n\r\nAdrienne\r\n\r\n",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 210997
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "Users with site-view=m redirected to \"undefined\"",
+                "detailed": "The mobile detection Javascript doesn't handle the case where cookies are set up for m.stuff.co.nz.\r\n\r\nIt was agreed for the original ticket that we would only redirect users to desktop or smartphone sites, not the legacy mobile site, but we still need to handle legacy site cookies in a sane way.",
+                "fullname": "Karen Turner",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 210998
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "Audit of 'iframe buster' files",
+                "detailed": "Please provide a list of the locations of the iframe busting files for the following ad servers (they might not all exist) \r\n\r\nie. the file that allows a rich media ad to break out of the iframe if it is served into an iframe - \r\n\r\n* Mediamind, \r\n* Facilitate \r\n* Doubleclick. \r\n* Ad tech \r\n\r\n",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 211973
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "Install/configure Varnish on testing and preprod",
+                "detailed": "Being able to test with the full set of caching layers is critical for at least three other in-progress work requests.\r\n\r\nStrider/Afterburner seem like the logical hosts, but other suggestions welcome.",
+                "fullname": "Catalyst Sysadmin",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212002
+            },
+            {
+                "agreed_due_date": null,
+                "brief": "Install/configure Varnish on testing and preprod",
+                "detailed": "Being able to test with the full set of caching layers is critical for at least three other in-progress work requests.\r\n\r\nStrider/Afterburner seem like the logical hosts, but other suggestions welcome.",
+                "fullname": "Levon Evans",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212002
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "New Gitosis branch for new Deals Section Template",
+                "detailed": "Hi,\r\n\r\nWe have some fixes we'll want patched by the end of the week, would it be possible please to get a new gitosis branch created and any quotes for getting this piece of work patched by the end of the week applied in this ticket please?\r\n\r\nCheers,\r\n\r\nAdrienne",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212030
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "[Bug] Site Intercept Code from 210669 not showing in Stuff, i.stuff and EM headers",
+                "detailed": "Hi,\r\n\r\nIt's been brought to my attention that the Site Catalyst code in the Yes Release isn't showing on Stuff, i.stuff and EM headers.\r\n\r\nIt is showing in m.stuff though.\r\n\r\nCan we please get this added asap, please?!\r\n\r\nCheers,\r\n\r\nadrienne",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212052
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "Move the Site Intercept Code to the bottom of the page",
+                "detailed": "The Site Intercept Code is hanging on the Stuff Desktop.\r\n\r\nIt should be moved before closing &lt;/body&gt; tag.",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212285
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "wurfl-check.pl is not helpful",
+                "detailed": "wurfl-check.pl is not handling failed test requests too well",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212062
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "autobuild/cma/auto_update.sh: misspelled command",
+                "detailed": "lockifle -&gt; lockfile",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212063
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "[BAU] [Bug] - New ad spaces aren't lining up correctly",
+                "detailed": "There is an issue with the new adspaces implemented in May.  They are displaying incorrectly at the bottom of the page when there isn't enough content.\r\n\r\nThis can be fixed with css.  Lewis will give the code to be added to the affected templates.\r\n",
+                "fullname": "Haydn Newport",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212133
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "[BAU] URL Redirect - Canterbury Babies",
+                "detailed": "Quote request:\r\n\r\nwww.canterburybabies.co.nz is currently redirecting to www.stuff.co.nz\r\n\r\nCan you please quote to redirect to this page on press.co.nz \r\n\r\nhttp://www.stuff.co.nz/the-press/about-us/promotions/9023285/Canterbury-Babies-of-2013\r\n\r\nIs there anyway this could be actioned on Monday?\r\n\r\nThanks",
+                "fullname": "Haydn Newport",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212387
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "CMA audit request",
+                "detailed": "Requested via email:\r\n\r\nOn 05/08/13 14:43, Pat Haworth wrote:\r\n&gt; Hi Jacques\r\n&gt; \r\n&gt; Just doing a CMA user Audit.\r\n&gt; \r\n&gt; I have these 4 with no roles assigned.\r\n&gt; \r\n&gt; 1. Processor, Classified\r\n&gt; 2. dontdeleteme, flickfeed\r\n&gt; 3. Feed, Reuters \r\n&gt; 4. dontremove, dontremove\r\n&gt; \r\n&gt; \r\n&gt; I do not recall any recent dev that required odd log-ons  also I'm\r\n&gt; pretty sure we do not use the Flick service anymore ...\r\n&gt; \r\n&gt; Is there any way of seeing if these have logged in recently.?\r\n",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212418
+            }
+        ],
+        [
+            {
+                "agreed_due_date": null,
+                "brief": "Update Site Intercept code",
+                "detailed": "An update to the Site Intercept code is required.",
+                "fullname": "Srdjan Jankovic - Australia",
+                "requested_by_date": null,
+                "status": "Finished",
+                "wr": 212438
+            }
+        ]
+    ],
+    "load_child_quotes": [
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 24
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 40
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 12
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 4
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 8.5
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 3.5
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": []
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": []
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 4
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": []
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": null,
+                    "quote_units": "hours",
+                    "sum": 2
+                },
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 2
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": []
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": []
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 2
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 4
+                }
+            ]
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": []
+        },
+        {
+            "_parsers": [
+                null,
+                null,
+                null
+            ],
+            "command": "SELECT",
+            "fields": [
+                {
+                    "columnID": 0,
+                    "dataTypeID": 701,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 8,
+                    "format": "text",
+                    "name": "sum",
+                    "tableID": 0
+                },
+                {
+                    "columnID": 8,
+                    "dataTypeID": 25,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": -1,
+                    "format": "text",
+                    "name": "quote_units",
+                    "tableID": 18123224
+                },
+                {
+                    "columnID": 0,
+                    "dataTypeID": 16,
+                    "dataTypeModifier": -1,
+                    "dataTypeSize": 1,
+                    "format": "text",
+                    "name": "approved",
+                    "tableID": 0
+                }
+            ],
+            "oid": null,
+            "rowCount": null,
+            "rows": [
+                {
+                    "approved": null,
+                    "quote_units": "hours",
+                    "sum": 4
+                },
+                {
+                    "approved": true,
+                    "quote_units": "hours",
+                    "sum": 2.5
+                }
+            ]
+        }
+    ]
+}

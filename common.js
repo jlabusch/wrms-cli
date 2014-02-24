@@ -1,3 +1,4 @@
+var util = require('util');
 
 // If cond is provided, we only log if its value is true-ish.
 function tap(msg, cond){
@@ -5,8 +6,7 @@ function tap(msg, cond){
     cond = arguments.length < 2 || cond;
     return function(obj){
         if (cond){
-            console.log(msg + JSON.stringify(obj));
-            console.log('---');
+            console.log(msg + util.inspect(obj));
         }
         return obj;
     }

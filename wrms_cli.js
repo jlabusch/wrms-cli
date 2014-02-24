@@ -11,6 +11,8 @@ var q       = require('kew'),
 var env = {
     config: null,
     db: null,
+    wr_view: print_wr_view,
+    timesheet_view: print_timesheet_view,
     // testing hooks
     __iterate_over_children: {
         entry: null,
@@ -53,8 +55,7 @@ function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
     var next = child_wrs.shift();
     if (!next){
         tapf(env.__iterate_over_children.pre_exit_complete)();
-        on_completion();
-        return;
+        return on_completion(wr_cache);
     }
     next = next.wr || next;
     if (wr_cache[next]){
@@ -71,7 +72,7 @@ function iterate_over_children(depth, parent_wr, child_wrs, on_completion){
             ;
 }
 
-function print_wr_view(){
+function print_wr_view(wr_data){
     function ignore_date(){
         return 1;
     }
@@ -85,26 +86,43 @@ function print_wr_view(){
     return env.db.fetch_timesheets(_.keys(wr_cache))
                 .then(tap('fetch_timesheets:\n', env.config.debug))
                 .then(function(result){
-                    print_wrs(merge_timesheets(squash_timesheets(ignore_date, result)));
+                    return print_wrs(merge_timesheets(squash_timesheets(ignore_date, result)));
                 })
-                .fail(die);
+                .fail(die)
+                ;
 }
 
-function print_timesheet_view(){
+function print_timesheet_view(wr_data){
     function by_week(a){
         var m = moment(a);
         return m.weekYear()*100 + m.week();
     }
-    return env.db.fetch_timesheets(_.keys(wr_cache))
+    return env.config.verbose ?
+           env.db.fetch_timesheets_detail(_.keys(wr_cache))
+                 .then(tap('fetch_timesheets_detail:\n', env.config.debug))
+                 .then(function(result){
+                     return print_timesheets_detail(result);
+                 })
+                 .fail(die)
+           :
+           env.db.fetch_timesheets(_.keys(wr_cache))
                  .then(tap('fetch_timesheets:\n', env.config.debug))
                  .then(function(result){
-                     print_timesheets(squash_timesheets(by_week, result));
+                     return print_timesheets(squash_timesheets(by_week, result));
                  })
-                 .fail(die);
+                 .fail(die)
+           ;
 }
 
 function run(wrs){
-    var after = env.config.on_completion == 'wr_view' ? print_wr_view : print_timesheet_view;
+    wr_cache = {};
+    var after = null;
+    try{
+        after = env[env.config.on_completion];
+    }catch(ex){}
+    if (typeof(after) !== 'function'){
+        after = print_wr_view;
+    }
 
     return iterate_over_children(0, null, wrs, after).fail(die);
 }
@@ -150,8 +168,6 @@ function load_child(depth, wr){
                         .then(tap('load_child:\n', env.config.debug))
                         .then(squash)
                         .then(bind(load_child_quotes, wr))
-                        //.then(bind(load_child_timesheets, wr))
-                        //.then(tap('result of timesheets: '))
                         .then(cache)
                         .then(tapf(env.__load_child.pre_exit_new))
                         ;
@@ -311,10 +327,21 @@ function print_wr(depth){
 }
 
 function print_wrs(){
-     wr_tree.forEach(function(n){
-         print_wr(n[1])(wr_cache[n[0]]);
-     });
-     process.exit(0);
+    wr_tree.forEach(function(n){
+        print_wr(n[1])(wr_cache[n[0]]);
+    });
+    return q.resolve(true);
+}
+
+function print_timesheets_detail(ts){
+    ts.rows.forEach(function(t){
+        console.log(t.request_id + '\t' +
+                    t.brief + '\t' +
+                    moment(t.date).format("YYYY/MM/DD") + '\t' +
+                    t.hours + '\t' +
+                    t.note);
+    });
+    return q.resolve(true);
 }
 
 function print_timesheets(ts){
@@ -365,7 +392,7 @@ function print_timesheets(ts){
         }
         console.log(line.join('\t'));
     });
-    process.exit(0);
+     return q.resolve(true);
 }
 
 function any_values_exist(obj){
