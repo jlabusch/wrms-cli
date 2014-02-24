@@ -70,11 +70,12 @@ exports.fetch_timesheets = function(request_ids){
 
 exports.fetch_timesheets_detail = function(request_ids){
     return query(
-        "select ra.request_id,ra.date,u.fullname,ra.note,ra.hours " +
-        "from request_activity ra, usr u " +
+        "select ra.request_id,r.brief,ra.date,u.fullname,ra.note,ra.hours " +
+        "from request_activity ra, usr u, request r " +
         "where ra.source='timesheet' and " +
         "      u.user_no=ra.worker_id and " +
-        "      request_id in (" + request_ids.join(',') + ") " +
+        "      ra.request_id=r.request_id and " +
+        "      r.request_id in (" + request_ids.join(',') + ") " +
         "order by ra.request_id,ra.date,ra.note asc"
     );
 };

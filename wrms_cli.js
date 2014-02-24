@@ -335,7 +335,11 @@ function print_wrs(){
 
 function print_timesheets_detail(ts){
     ts.rows.forEach(function(t){
-        console.log(t.request_id + '\t' + moment(t.date).format("YYYY/MM/DD") + '\t' + t.hours + '\t' + t.note);
+        console.log(t.request_id + '\t' +
+                    t.brief + '\t' +
+                    moment(t.date).format("YYYY/MM/DD") + '\t' +
+                    t.hours + '\t' +
+                    t.note);
     });
     return q.resolve(true);
 }
