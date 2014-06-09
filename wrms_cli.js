@@ -339,7 +339,8 @@ function print_timesheets_detail(ts){
                     t.brief + '\t' +
                     moment(t.date).format("YYYY/MM/DD") + '\t' +
                     t.hours + '\t' +
-                    t.note);
+                    t.note + '\t' +
+                    t.fullname);
     });
     return q.resolve(true);
 }
