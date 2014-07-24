@@ -278,7 +278,7 @@ function print_wr(depth){
                 var quote_str = _.map(o.quotes, function(q){ return q.sum + ' ' + q.quote_units + ' (' + (q.approved ? 'approved' : 'unapproved') + ')';}).join(',');
                 quote_str = quote_str || 'nothing';
                 console.log(
-                    indent + '\033[30m' +
+                    indent + '\033[34m' +
                     'Allocated to ' + o.fullname.join('/') +
                     ', worked ' + o.timesheet_hours + 'h, quoted ' + quote_str +
                     '\033[0m'
