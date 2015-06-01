@@ -27,9 +27,14 @@ a slightly nonstandard PPA -
 
 <pre>
     Usage: wrms-cli [options] &lt;wr...&gt;
-        --sort-by [wr|brief|status]
-        --host &lt;db-host=db1.db.catalyst.net.nz&gt;
-        --port &lt;port=5433&gt;
+    	--timesheets (show a timesheet-oriented view of the work requests)
+    	--allocated-to &lt;user&gt; (Filter by case-insensitive regex, e.g. "james|sam")
+    	--host &lt;db-host=catwgtn-prod-pg92.db.catalyst.net.nz&gt;
+    	--format [pretty|csv]
+    	--port &lt;port=5432&gt;
+    	--sort-by [wr|brief|status]
+    	--verbose
+    	--debug
 </pre>
 
 The default sort order is `status`, which is based on the status code's WRMS sequence number rather than alphabetical order; e.g. 'New Request' comes way before 'Need Info'.
