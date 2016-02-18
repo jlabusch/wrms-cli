@@ -11,8 +11,8 @@ var config = {
     user: 'wrms_readonly',
     password: '',
     database: 'wrms',
-    host: 'db1.db.catalyst.net.nz',
-    port: 5433
+    host: 'catwgtn-prod-pg92.db.catalyst.net.nz',
+    port: 5432
 };
 
 var test_template = {};

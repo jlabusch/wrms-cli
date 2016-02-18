@@ -12,7 +12,7 @@ var _       = require('underscore')._,
 
 function usage(){
     die(
-        'Usage: wrms-cli [options] <wr...>' +
+        'Usage: wr [options] <wr...>' +
         '\n\t--timesheets (show a timesheet-oriented view of the work requests)' +
         '\n\t--allocated-to <user> (Filter by case-insensitive regex, e.g. "james|sam")' +
         '\n\t--host <db-host=\033[1m' + db.config.host + '\033[0m>' +

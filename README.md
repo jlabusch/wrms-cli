@@ -26,7 +26,7 @@ a slightly nonstandard PPA -
 ## Usage
 
 <pre>
-    Usage: wrms-cli [options] &lt;wr...&gt;
+    Usage: wr [options] &lt;wr...&gt;
         --sort-by [wr|brief|status]
         --host &lt;db-host=db1.db.catalyst.net.nz&gt;
         --port &lt;port=5433&gt;
