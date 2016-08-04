@@ -1,0 +1,5 @@
+function wr(){
+    pushd ${HOME}/src/wrms-cli >/dev/null
+    make run ARGS="$*"
+    popd >/dev/null
+}
